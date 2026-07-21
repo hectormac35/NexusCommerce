@@ -1,4 +1,5 @@
 using Identity.Api.Contratos.Autenticacion;
+using Identity.Application.Autenticacion.IniciarSesion;
 using Identity.Application.Autenticacion.Registrar;
 using Identity.Application.Common.Resultados;
 using MediatR;
@@ -59,4 +60,46 @@ public sealed class AutenticacionController(
             title: resultado.Error.Codigo,
             detail: resultado.Error.Mensaje);
     }
+
+    [HttpPost("login")]
+    [ProducesResponseType(
+        typeof(SesionIniciadaRespuesta),
+        StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> IniciarSesion(
+        IniciarSesionPeticion peticion,
+        CancellationToken cancellationToken)
+    {
+        var resultado = await sender.Send(
+            new IniciarSesionComando(
+                peticion.Correo,
+                peticion.Contrasena),
+            cancellationToken);
+
+        if (resultado.EsExitoso)
+        {
+            return Ok(resultado.Valor);
+        }
+
+        var estado = resultado.Error.Tipo switch
+        {
+            TipoError.NoAutorizado =>
+                StatusCodes.Status401Unauthorized,
+
+            TipoError.Validacion =>
+                StatusCodes.Status400BadRequest,
+
+            _ =>
+                StatusCodes.Status500InternalServerError
+        };
+
+        return Problem(
+            statusCode: estado,
+            title: resultado.Error.Codigo,
+            detail: resultado.Error.Mensaje);
+    }
+
 }

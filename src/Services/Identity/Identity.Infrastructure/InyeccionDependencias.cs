@@ -3,6 +3,7 @@ using Identity.Application.Abstracciones.Seguridad;
 using Identity.Infrastructure.Persistencia;
 using Identity.Infrastructure.Persistencia.Repositorios;
 using Identity.Infrastructure.Seguridad;
+using Identity.Infrastructure.Seguridad.Jwt;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,10 @@ public static class InyeccionDependencias
             opciones =>
                 opciones.UseNpgsql(cadenaConexion));
 
+        servicios.Configure<JwtOpciones>(
+            configuracion.GetSection(
+                JwtOpciones.Seccion));
+
         servicios.AddScoped<
             IRepositorioUsuarios,
             RepositorioUsuarios>();
@@ -31,6 +36,10 @@ public static class InyeccionDependencias
         servicios.AddSingleton<
             IHashContrasena,
             HashContrasena>();
+
+        servicios.AddSingleton<
+            IGeneradorTokens,
+            GeneradorTokens>();
 
         return servicios;
     }

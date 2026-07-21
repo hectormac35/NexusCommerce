@@ -1,4 +1,5 @@
 using Identity.Application.Abstracciones.Persistencia;
+using Identity.Domain.Tokens;
 using Identity.Domain.Usuarios;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +18,29 @@ internal sealed class RepositorioUsuarios(
             cancellationToken);
     }
 
+    public Task<Usuario?> ObtenerPorCorreoAsync(
+        string correo,
+        CancellationToken cancellationToken = default)
+    {
+        return contexto.Usuarios
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                usuario => usuario.Correo == correo,
+                cancellationToken);
+    }
+
+    public Task<CredencialUsuario?> ObtenerCredencialAsync(
+        Guid usuarioId,
+        CancellationToken cancellationToken = default)
+    {
+        return contexto.CredencialesUsuarios
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                credencial =>
+                    credencial.UsuarioId == usuarioId,
+                cancellationToken);
+    }
+
     public void AgregarUsuario(Usuario usuario)
     {
         contexto.Usuarios.Add(usuario);
@@ -26,6 +50,12 @@ internal sealed class RepositorioUsuarios(
         CredencialUsuario credencial)
     {
         contexto.CredencialesUsuarios.Add(credencial);
+    }
+
+    public void AgregarRefreshToken(
+        RefreshToken refreshToken)
+    {
+        contexto.RefreshTokens.Add(refreshToken);
     }
 
     public Task<int> GuardarCambiosAsync(
