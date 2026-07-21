@@ -17,25 +17,6 @@ services:
       timeout: 5s
       retries: 10
 
-
-  postgres-identidad:
-    image: postgres:18-alpine
-    container_name: nexuscommerce-postgres-identidad
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: nexus_identidad
-      POSTGRES_USER: nexus
-      POSTGRES_PASSWORD: nexus_dev_password
-    ports:
-      - "55433:5432"
-    volumes:
-      - nexuscommerce_identidad_data:/var/lib/postgresql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nexus -d nexus_identidad"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   catalog-api:
     build:
       context: .
@@ -87,5 +68,4 @@ services:
       retries: 10
 
 volumes:
-  nexuscommerce_identidad_data:
   nexuscommerce_catalogo_data:
