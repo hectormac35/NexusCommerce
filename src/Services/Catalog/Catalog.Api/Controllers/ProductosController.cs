@@ -1,4 +1,5 @@
-using Catalog.Api.Modelos;
+using Catalog.Application.Productos;
+using Catalog.Domain.Productos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Catalog.Api.Controllers;
@@ -15,8 +16,7 @@ public sealed class ProductosController : ControllerBase
             "Teclado mecánico compacto con iluminación RGB.",
             89.99m,
             25,
-            "Periféricos",
-            true),
+            "Periféricos"),
 
         new(
             Guid.Parse("2f8ec43e-5a75-4de4-a8e4-d49c2c270102"),
@@ -24,8 +24,7 @@ public sealed class ProductosController : ControllerBase
             "Ratón ergonómico con conexión inalámbrica.",
             39.95m,
             40,
-            "Periféricos",
-            true),
+            "Periféricos"),
 
         new(
             Guid.Parse("2f8ec43e-5a75-4de4-a8e4-d49c2c270103"),
@@ -33,26 +32,44 @@ public sealed class ProductosController : ControllerBase
             "Monitor IPS con resolución 1440p.",
             299.90m,
             12,
-            "Monitores",
-            true)
+            "Monitores")
     ];
 
     [HttpGet]
-    [ProducesResponseType<IReadOnlyCollection<Producto>>(StatusCodes.Status200OK)]
-    public ActionResult<IReadOnlyCollection<Producto>> ObtenerTodos()
+    [ProducesResponseType<IReadOnlyCollection<ProductoDto>>(
+        StatusCodes.Status200OK)]
+    public ActionResult<IReadOnlyCollection<ProductoDto>> ObtenerTodos()
     {
-        return Ok(Productos);
+        var productos = Productos
+            .Select(MapearProducto)
+            .ToArray();
+
+        return Ok(productos);
     }
 
     [HttpGet("{id:guid}")]
-    [ProducesResponseType<Producto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProductoDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult<Producto> ObtenerPorId(Guid id)
+    public ActionResult<ProductoDto> ObtenerPorId(Guid id)
     {
-        var producto = Productos.FirstOrDefault(producto => producto.Id == id);
+        var producto = Productos
+            .FirstOrDefault(producto => producto.Id == id);
 
         return producto is null
             ? NotFound()
-            : Ok(producto);
+            : Ok(MapearProducto(producto));
+    }
+
+    private static ProductoDto MapearProducto(Producto producto)
+    {
+        return new ProductoDto(
+            producto.Id,
+            producto.Nombre,
+            producto.Descripcion,
+            producto.Precio,
+            producto.Stock,
+            producto.Categoria,
+            producto.EstaActivo,
+            producto.TieneStock);
     }
 }
