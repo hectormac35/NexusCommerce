@@ -11,6 +11,9 @@ public sealed class IdentidadDbContext(
     public DbSet<Usuario> Usuarios =>
         Set<Usuario>();
 
+    public DbSet<CredencialUsuario> CredencialesUsuarios =>
+        Set<CredencialUsuario>();
+
     public DbSet<RefreshToken> RefreshTokens =>
         Set<RefreshToken>();
 
