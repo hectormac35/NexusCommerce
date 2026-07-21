@@ -1,5 +1,7 @@
 using Catalog.Application.Productos;
-using Catalog.Domain.Productos;
+using Catalog.Application.Productos.Consultas.ObtenerProductoPorId;
+using Catalog.Application.Productos.Consultas.ObtenerProductos;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Catalog.Api.Controllers;
@@ -8,41 +10,22 @@ namespace Catalog.Api.Controllers;
 [Route("api/catalogo/productos")]
 public sealed class ProductosController : ControllerBase
 {
-    private static readonly IReadOnlyCollection<Producto> Productos =
-    [
-        new(
-            Guid.Parse("2f8ec43e-5a75-4de4-a8e4-d49c2c270101"),
-            "Teclado mecánico",
-            "Teclado mecánico compacto con iluminación RGB.",
-            89.99m,
-            25,
-            "Periféricos"),
+    private readonly ISender _sender;
 
-        new(
-            Guid.Parse("2f8ec43e-5a75-4de4-a8e4-d49c2c270102"),
-            "Ratón inalámbrico",
-            "Ratón ergonómico con conexión inalámbrica.",
-            39.95m,
-            40,
-            "Periféricos"),
-
-        new(
-            Guid.Parse("2f8ec43e-5a75-4de4-a8e4-d49c2c270103"),
-            "Monitor 27 pulgadas",
-            "Monitor IPS con resolución 1440p.",
-            299.90m,
-            12,
-            "Monitores")
-    ];
+    public ProductosController(ISender sender)
+    {
+        _sender = sender;
+    }
 
     [HttpGet]
     [ProducesResponseType<IReadOnlyCollection<ProductoDto>>(
         StatusCodes.Status200OK)]
-    public ActionResult<IReadOnlyCollection<ProductoDto>> ObtenerTodos()
+    public async Task<ActionResult<IReadOnlyCollection<ProductoDto>>>
+        ObtenerTodos(CancellationToken cancellationToken)
     {
-        var productos = Productos
-            .Select(MapearProducto)
-            .ToArray();
+        var productos = await _sender.Send(
+            new ObtenerProductosConsulta(),
+            cancellationToken);
 
         return Ok(productos);
     }
@@ -50,26 +33,16 @@ public sealed class ProductosController : ControllerBase
     [HttpGet("{id:guid}")]
     [ProducesResponseType<ProductoDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult<ProductoDto> ObtenerPorId(Guid id)
+    public async Task<ActionResult<ProductoDto>> ObtenerPorId(
+        Guid id,
+        CancellationToken cancellationToken)
     {
-        var producto = Productos
-            .FirstOrDefault(producto => producto.Id == id);
+        var producto = await _sender.Send(
+            new ObtenerProductoPorIdConsulta(id),
+            cancellationToken);
 
         return producto is null
             ? NotFound()
-            : Ok(MapearProducto(producto));
-    }
-
-    private static ProductoDto MapearProducto(Producto producto)
-    {
-        return new ProductoDto(
-            producto.Id,
-            producto.Nombre,
-            producto.Descripcion,
-            producto.Precio,
-            producto.Stock,
-            producto.Categoria,
-            producto.EstaActivo,
-            producto.TieneStock);
+            : Ok(producto);
     }
 }
