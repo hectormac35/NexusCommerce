@@ -12,6 +12,7 @@
   </Folder>
   <Folder Name="/tests/" />
   <Folder Name="/tests/Catalog/">
+    <Project Path="tests/Catalog/Catalog.Api.IntegrationTests/Catalog.Api.IntegrationTests.csproj" />
     <Project Path="tests/Catalog/Catalog.Application.UnitTests/Catalog.Application.UnitTests.csproj" />
     <Project Path="tests/Catalog/Catalog.Domain.UnitTests/Catalog.Domain.UnitTests.csproj" />
   </Folder>
