@@ -1,3 +1,5 @@
+using Identity.Api.ManejoErrores;
+using Identity.Application;
 using Identity.Infrastructure;
 using Identity.Infrastructure.Persistencia;
 using Microsoft.EntityFrameworkCore;
@@ -6,11 +8,19 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails();
+
+builder.Services.AddExceptionHandler<
+    ManejadorExcepcionesGlobal>();
+
+builder.Services.AgregarAplicacionIdentidad();
 
 builder.Services.AgregarInfraestructuraIdentidad(
     builder.Configuration);
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
