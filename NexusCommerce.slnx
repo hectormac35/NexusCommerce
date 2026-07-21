@@ -22,4 +22,7 @@
     <Project Path="tests/Catalog/Catalog.Application.UnitTests/Catalog.Application.UnitTests.csproj" />
     <Project Path="tests/Catalog/Catalog.Domain.UnitTests/Catalog.Domain.UnitTests.csproj" />
   </Folder>
+  <Folder Name="/tests/Identity/">
+    <Project Path="tests/Identity/Identity.Domain.UnitTests/Identity.Domain.UnitTests.csproj" />
+  </Folder>
 </Solution>
