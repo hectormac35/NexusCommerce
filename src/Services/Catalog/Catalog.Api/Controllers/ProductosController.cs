@@ -2,6 +2,7 @@ using Catalog.Api.Contratos.Productos;
 using Catalog.Application.Common.Errors;
 using Catalog.Application.Productos;
 using Catalog.Application.Productos.Comandos.CrearProducto;
+using Catalog.Application.Productos.Comandos.ActualizarProducto;
 using Catalog.Application.Productos.Consultas.ObtenerProductoPorId;
 using Catalog.Application.Productos.Consultas.ObtenerProductos;
 using MediatR;
@@ -99,4 +100,56 @@ public sealed class ProductosController : ControllerBase
             new { id = resultado.Valor },
             respuesta);
     }
+
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Actualizar(
+        Guid id,
+        ActualizarProductoSolicitud solicitud,
+        CancellationToken cancellationToken)
+    {
+        var comando = new ActualizarProductoComando(
+            id,
+            solicitud.Nombre,
+            solicitud.Descripcion,
+            solicitud.Precio,
+            solicitud.Categoria);
+
+        var resultado = await _sender.Send(
+            comando,
+            cancellationToken);
+
+        if (resultado.EsExitoso)
+        {
+            return NoContent();
+        }
+
+        var problema = new ProblemDetails
+        {
+            Status = resultado.Error.Tipo switch
+            {
+                TipoError.NoEncontrado =>
+                    StatusCodes.Status404NotFound,
+
+                TipoError.Conflicto =>
+                    StatusCodes.Status409Conflict,
+
+                TipoError.Validacion =>
+                    StatusCodes.Status400BadRequest,
+
+                _ => StatusCodes.Status500InternalServerError
+            },
+            Title = resultado.Error.Codigo,
+            Detail = resultado.Error.Mensaje,
+            Instance = HttpContext.Request.Path
+        };
+
+        return StatusCode(
+            problema.Status.Value,
+            problema);
+    }
+
 }

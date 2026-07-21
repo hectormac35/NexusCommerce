@@ -24,6 +24,7 @@ internal sealed class CrearProductoComandoHandler
 
         var existeNombre = await _repositorio.ExisteNombreAsync(
             nombre,
+            null,
             cancellationToken);
 
         if (existeNombre)

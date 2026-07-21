@@ -25,6 +25,7 @@ public sealed class CrearProductoComandoHandlerTests
         _repositorio
             .ExisteNombreAsync(
                 comando.Nombre,
+                null,
                 Arg.Any<CancellationToken>())
             .Returns(false);
 
@@ -60,6 +61,7 @@ public sealed class CrearProductoComandoHandlerTests
         _repositorio
             .ExisteNombreAsync(
                 comando.Nombre,
+                null,
                 Arg.Any<CancellationToken>())
             .Returns(true);
 
@@ -91,6 +93,7 @@ public sealed class CrearProductoComandoHandlerTests
         _repositorio
             .ExisteNombreAsync(
                 "Webcam profesional",
+                null,
                 Arg.Any<CancellationToken>())
             .Returns(false);
 
@@ -106,6 +109,7 @@ public sealed class CrearProductoComandoHandlerTests
 
         await _repositorio.Received(1).ExisteNombreAsync(
             "Webcam profesional",
+            null,
             Arg.Any<CancellationToken>());
 
         await _repositorio.Received(1).AgregarAsync(

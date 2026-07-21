@@ -13,12 +13,25 @@ internal sealed class RepositorioProductos : IRepositorioProductos
         _contexto = contexto;
     }
 
+    public Task<Producto?> ObtenerPorIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        return _contexto.Productos.FirstOrDefaultAsync(
+            producto => producto.Id == id,
+            cancellationToken);
+    }
+
     public Task<bool> ExisteNombreAsync(
         string nombre,
+        Guid? productoExcluidoId = null,
         CancellationToken cancellationToken = default)
     {
         return _contexto.Productos.AnyAsync(
-            producto => EF.Functions.ILike(producto.Nombre, nombre),
+            producto =>
+                EF.Functions.ILike(producto.Nombre, nombre) &&
+                (!productoExcluidoId.HasValue ||
+                 producto.Id != productoExcluidoId.Value),
             cancellationToken);
     }
 
