@@ -18,6 +18,7 @@ internal sealed class ConsultaProductos : IConsultaProductos
     {
         return await _contexto.Productos
             .AsNoTracking()
+            .Where(producto => producto.EstaActivo)
             .OrderBy(producto => producto.Nombre)
             .ToArrayAsync(cancellationToken);
     }
@@ -29,7 +30,9 @@ internal sealed class ConsultaProductos : IConsultaProductos
         return await _contexto.Productos
             .AsNoTracking()
             .FirstOrDefaultAsync(
-                producto => producto.Id == id,
+                producto =>
+                    producto.Id == id &&
+                    producto.EstaActivo,
                 cancellationToken);
     }
 }

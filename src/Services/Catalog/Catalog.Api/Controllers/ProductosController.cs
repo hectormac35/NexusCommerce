@@ -2,6 +2,7 @@ using Catalog.Api.Contratos.Productos;
 using Catalog.Application.Common.Errors;
 using Catalog.Application.Productos;
 using Catalog.Application.Productos.Comandos.CrearProducto;
+using Catalog.Application.Productos.Comandos.DesactivarProducto;
 using Catalog.Application.Productos.Comandos.ActualizarProducto;
 using Catalog.Application.Productos.Consultas.ObtenerProductoPorId;
 using Catalog.Application.Productos.Consultas.ObtenerProductos;
@@ -139,6 +140,42 @@ public sealed class ProductosController : ControllerBase
 
                 TipoError.Validacion =>
                     StatusCodes.Status400BadRequest,
+
+                _ => StatusCodes.Status500InternalServerError
+            },
+            Title = resultado.Error.Codigo,
+            Detail = resultado.Error.Mensaje,
+            Instance = HttpContext.Request.Path
+        };
+
+        return StatusCode(
+            problema.Status.Value,
+            problema);
+    }
+
+
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Desactivar(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var resultado = await _sender.Send(
+            new DesactivarProductoComando(id),
+            cancellationToken);
+
+        if (resultado.EsExitoso)
+        {
+            return NoContent();
+        }
+
+        var problema = new ProblemDetails
+        {
+            Status = resultado.Error.Tipo switch
+            {
+                TipoError.NoEncontrado =>
+                    StatusCodes.Status404NotFound,
 
                 _ => StatusCodes.Status500InternalServerError
             },
