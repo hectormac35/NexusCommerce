@@ -10,4 +10,8 @@
     <Project Path="src/Services/Catalog/Catalog.Domain/Catalog.Domain.csproj" />
     <Project Path="src/Services/Catalog/Catalog.Infrastructure/Catalog.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Catalog/">
+    <Project Path="tests/Catalog/Catalog.Domain.UnitTests/Catalog.Domain.UnitTests.csproj" />
+  </Folder>
 </Solution>
