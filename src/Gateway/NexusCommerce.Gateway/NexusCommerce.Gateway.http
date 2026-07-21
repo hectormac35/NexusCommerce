@@ -1,0 +1,6 @@
+@NexusCommerce.Gateway_HostAddress = http://localhost:5113
+
+GET {{NexusCommerce.Gateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Gateway/">
+    <Project Path="src/Gateway/NexusCommerce.Gateway/NexusCommerce.Gateway.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Catalog/">
+    <Project Path="src/Services/Catalog/Catalog.Api/Catalog.Api.csproj" />
+  </Folder>
+</Solution>
