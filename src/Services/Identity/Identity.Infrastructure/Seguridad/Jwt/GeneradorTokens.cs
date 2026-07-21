@@ -67,16 +67,11 @@ internal sealed class GeneradorTokens(
         var accessToken =
             new JwtSecurityTokenHandler().WriteToken(jwt);
 
-        var refreshTokenBytes =
-            RandomNumberGenerator.GetBytes(64);
-
-        var refreshToken =
-            Convert.ToBase64String(refreshTokenBytes);
+        var refreshToken = Convert.ToBase64String(
+            RandomNumberGenerator.GetBytes(64));
 
         var refreshTokenHash =
-            Convert.ToHexString(
-                SHA256.HashData(
-                    Encoding.UTF8.GetBytes(refreshToken)));
+            CalcularHashRefreshToken(refreshToken);
 
         var expiracionRefreshToken = ahora.AddDays(
             _opciones.DuracionRefreshTokenDias);
@@ -87,5 +82,16 @@ internal sealed class GeneradorTokens(
             refreshTokenHash,
             _opciones.DuracionAccessTokenMinutos * 60,
             expiracionRefreshToken);
+    }
+
+    public string CalcularHashRefreshToken(
+        string refreshToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(
+            refreshToken);
+
+        return Convert.ToHexString(
+            SHA256.HashData(
+                Encoding.UTF8.GetBytes(refreshToken)));
     }
 }

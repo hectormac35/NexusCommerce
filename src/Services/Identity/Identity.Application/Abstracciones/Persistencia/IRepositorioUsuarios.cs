@@ -9,12 +9,20 @@ public interface IRepositorioUsuarios
         string correo,
         CancellationToken cancellationToken = default);
 
+    Task<Usuario?> ObtenerPorIdAsync(
+        Guid usuarioId,
+        CancellationToken cancellationToken = default);
+
     Task<Usuario?> ObtenerPorCorreoAsync(
         string correo,
         CancellationToken cancellationToken = default);
 
     Task<CredencialUsuario?> ObtenerCredencialAsync(
         Guid usuarioId,
+        CancellationToken cancellationToken = default);
+
+    Task<RefreshToken?> ObtenerRefreshTokenPorHashAsync(
+        string tokenHash,
         CancellationToken cancellationToken = default);
 
     void AgregarUsuario(Usuario usuario);

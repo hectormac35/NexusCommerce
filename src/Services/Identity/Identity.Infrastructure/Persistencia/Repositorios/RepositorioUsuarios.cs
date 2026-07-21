@@ -18,6 +18,17 @@ internal sealed class RepositorioUsuarios(
             cancellationToken);
     }
 
+    public Task<Usuario?> ObtenerPorIdAsync(
+        Guid usuarioId,
+        CancellationToken cancellationToken = default)
+    {
+        return contexto.Usuarios
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                usuario => usuario.Id == usuarioId,
+                cancellationToken);
+    }
+
     public Task<Usuario?> ObtenerPorCorreoAsync(
         string correo,
         CancellationToken cancellationToken = default)
@@ -38,6 +49,16 @@ internal sealed class RepositorioUsuarios(
             .FirstOrDefaultAsync(
                 credencial =>
                     credencial.UsuarioId == usuarioId,
+                cancellationToken);
+    }
+
+    public Task<RefreshToken?> ObtenerRefreshTokenPorHashAsync(
+        string tokenHash,
+        CancellationToken cancellationToken = default)
+    {
+        return contexto.RefreshTokens
+            .FirstOrDefaultAsync(
+                token => token.Token == tokenHash,
                 cancellationToken);
     }
 
