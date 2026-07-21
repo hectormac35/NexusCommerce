@@ -1,6 +1,7 @@
 using Catalog.Application.Abstracciones.Persistencia;
 using Catalog.Infrastructure.Persistencia;
 using Catalog.Infrastructure.Persistencia.Consultas;
+using Catalog.Infrastructure.Persistencia.Repositorios;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,7 @@ public static class InyeccionDependencias
             opciones.UseNpgsql(cadenaConexion));
 
         servicios.AddScoped<IConsultaProductos, ConsultaProductos>();
+        servicios.AddScoped<IRepositorioProductos, RepositorioProductos>();
 
         return servicios;
     }

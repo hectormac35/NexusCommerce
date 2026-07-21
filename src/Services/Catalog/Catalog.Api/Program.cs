@@ -1,3 +1,4 @@
+using Catalog.Api.ManejoErrores;
 using Catalog.Application;
 using Catalog.Infrastructure;
 using Catalog.Infrastructure.Persistencia;
@@ -7,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<ManejadorExcepcionesGlobal>();
 
 builder.Services.AgregarAplicacionCatalogo();
 
@@ -14,6 +17,8 @@ builder.Services.AgregarInfraestructuraCatalogo(
     builder.Configuration);
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
