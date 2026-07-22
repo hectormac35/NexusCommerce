@@ -11,14 +11,14 @@ internal sealed class CrearProductoComandoHandler
     : IRequestHandler<CrearProductoComando, Resultado<Guid>>
 {
     private readonly IRepositorioProductos _repositorio;
-    private readonly IBusEventos _busEventos;
+    private readonly IOutbox _outbox;
 
     public CrearProductoComandoHandler(
         IRepositorioProductos repositorio,
-        IBusEventos busEventos)
+        IOutbox outbox)
     {
         _repositorio = repositorio;
-        _busEventos = busEventos;
+        _outbox = outbox;
     }
 
     public async Task<Resultado<Guid>> Handle(
@@ -45,23 +45,24 @@ internal sealed class CrearProductoComandoHandler
             request.Stock,
             request.Categoria);
 
-        await _repositorio.AgregarAsync(
-            producto,
-            cancellationToken);
-
-        await _repositorio.GuardarCambiosAsync(
-            cancellationToken);
-
         var evento = new ProductoCreadoEvento(
             Guid.NewGuid(),
             DateTime.UtcNow,
             producto.Id,
             producto.Nombre,
             producto.Precio,
+            producto.Stock,
             producto.Categoria);
 
-        await _busEventos.PublicarAsync(
+        await _repositorio.AgregarAsync(
+            producto,
+            cancellationToken);
+
+        await _outbox.AgregarAsync(
             evento,
+            cancellationToken);
+
+        await _repositorio.GuardarCambiosAsync(
             cancellationToken);
 
         return producto.Id;

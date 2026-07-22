@@ -11,17 +11,17 @@ namespace Catalog.Application.UnitTests.Productos.Comandos.CrearProducto;
 public sealed class CrearProductoComandoHandlerTests
 {
     private readonly IRepositorioProductos _repositorio;
-    private readonly IBusEventos _busEventos;
+    private readonly IOutbox _outbox;
     private readonly CrearProductoComandoHandler _handler;
 
     public CrearProductoComandoHandlerTests()
     {
         _repositorio = Substitute.For<IRepositorioProductos>();
-        _busEventos = Substitute.For<IBusEventos>();
+        _outbox = Substitute.For<IOutbox>();
 
         _handler = new CrearProductoComandoHandler(
             _repositorio,
-            _busEventos);
+            _outbox);
     }
 
     [Fact]
@@ -61,8 +61,8 @@ public sealed class CrearProductoComandoHandlerTests
             .GuardarCambiosAsync(
                 Arg.Any<CancellationToken>());
 
-        await _busEventos.Received(1)
-            .PublicarAsync(
+        await _outbox.Received(1)
+            .AgregarAsync(
                 Arg.Any<ProductoCreadoEvento>(),
                 Arg.Any<CancellationToken>());
     }
@@ -98,8 +98,8 @@ public sealed class CrearProductoComandoHandlerTests
             .GuardarCambiosAsync(
                 Arg.Any<CancellationToken>());
 
-        await _busEventos.DidNotReceive()
-            .PublicarAsync(
+        await _outbox.DidNotReceive()
+            .AgregarAsync(
                 Arg.Any<ProductoCreadoEvento>(),
                 Arg.Any<CancellationToken>());
     }
@@ -143,8 +143,8 @@ public sealed class CrearProductoComandoHandlerTests
                     producto.Nombre == "Webcam profesional"),
                 Arg.Any<CancellationToken>());
 
-        await _busEventos.Received(1)
-            .PublicarAsync(
+        await _outbox.Received(1)
+            .AgregarAsync(
                 Arg.Any<ProductoCreadoEvento>(),
                 Arg.Any<CancellationToken>());
     }

@@ -8,5 +8,6 @@ public sealed record ProductoCreadoEvento(
     Guid ProductoId,
     string Nombre,
     decimal Precio,
+    int Stock,
     string Categoria)
     : IEventoIntegracion;

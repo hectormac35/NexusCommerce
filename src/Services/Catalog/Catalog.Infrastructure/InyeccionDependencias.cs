@@ -3,6 +3,7 @@ using Catalog.Application.Abstracciones.Persistencia;
 using Catalog.Infrastructure.Mensajeria.RabbitMq;
 using Catalog.Infrastructure.Persistencia;
 using Catalog.Infrastructure.Persistencia.Consultas;
+using Catalog.Infrastructure.Persistencia.Outbox;
 using Catalog.Infrastructure.Persistencia.Repositorios;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -32,6 +33,10 @@ public static class InyeccionDependencias
             IRepositorioProductos,
             RepositorioProductos>();
 
+        servicios.AddScoped<
+            IOutbox,
+            Outbox>();
+
         servicios
             .AddOptions<RabbitMqOpciones>()
             .Bind(
@@ -57,6 +62,28 @@ public static class InyeccionDependencias
         servicios.AddSingleton<
             IBusEventos,
             RabbitMqBusEventos>();
+
+        servicios
+            .AddOptions<OutboxOpciones>()
+            .Bind(
+                configuracion.GetSection(
+                    OutboxOpciones.Seccion))
+            .Validate(
+                opciones =>
+                    opciones.IntervaloSegundos > 0,
+                "El intervalo de Outbox debe ser mayor que cero.")
+            .Validate(
+                opciones =>
+                    opciones.TamanoLote > 0,
+                "El tamaño del lote Outbox debe ser mayor que cero.")
+            .Validate(
+                opciones =>
+                    opciones.MaximoIntentos > 0,
+                "El máximo de intentos debe ser mayor que cero.")
+            .ValidateOnStart();
+
+        servicios.AddHostedService<
+            ProcesadorOutbox>();
 
         return servicios;
     }
