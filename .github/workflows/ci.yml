@@ -21,6 +21,21 @@ jobs:
     name: Build y pruebas
     runs-on: ubuntu-latest
 
+    services:
+      postgres-catalogo:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: nexus_catalogo
+          POSTGRES_USER: nexus
+          POSTGRES_PASSWORD: nexus_dev_password
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd "pg_isready -U nexus -d nexus_catalogo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
@@ -51,6 +66,9 @@ jobs:
           --verbosity minimal
 
       - name: Ejecutar pruebas
+        env:
+          ConnectionStrings__Catalogo: Host=localhost;Port=55432;Database=nexus_catalogo;Username=nexus;Password=nexus_dev_password
+          ASPNETCORE_ENVIRONMENT: IntegrationTests
         run: >
           dotnet test NexusCommerce.slnx
           --configuration Release
