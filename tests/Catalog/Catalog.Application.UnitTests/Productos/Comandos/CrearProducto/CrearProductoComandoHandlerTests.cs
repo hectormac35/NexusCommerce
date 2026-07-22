@@ -1,4 +1,6 @@
+using Catalog.Application.Abstracciones.Mensajeria;
 using Catalog.Application.Abstracciones.Persistencia;
+using Catalog.Application.Eventos.Integracion;
 using Catalog.Application.Productos;
 using Catalog.Application.Productos.Comandos.CrearProducto;
 using Catalog.Domain.Productos;
@@ -9,12 +11,17 @@ namespace Catalog.Application.UnitTests.Productos.Comandos.CrearProducto;
 public sealed class CrearProductoComandoHandlerTests
 {
     private readonly IRepositorioProductos _repositorio;
+    private readonly IBusEventos _busEventos;
     private readonly CrearProductoComandoHandler _handler;
 
     public CrearProductoComandoHandlerTests()
     {
         _repositorio = Substitute.For<IRepositorioProductos>();
-        _handler = new CrearProductoComandoHandler(_repositorio);
+        _busEventos = Substitute.For<IBusEventos>();
+
+        _handler = new CrearProductoComandoHandler(
+            _repositorio,
+            _busEventos);
     }
 
     [Fact]
@@ -30,7 +37,8 @@ public sealed class CrearProductoComandoHandlerTests
             .Returns(false);
 
         _repositorio
-            .GuardarCambiosAsync(Arg.Any<CancellationToken>())
+            .GuardarCambiosAsync(
+                Arg.Any<CancellationToken>())
             .Returns(1);
 
         var resultado = await _handler.Handle(
@@ -42,15 +50,20 @@ public sealed class CrearProductoComandoHandlerTests
 
         await _repositorio.Received(1).AgregarAsync(
             Arg.Is<Producto>(producto =>
-                producto != null &&
                 producto.Id == resultado.Valor &&
                 producto.Nombre == comando.Nombre &&
                 producto.Precio == comando.Precio &&
                 producto.Stock == comando.Stock),
             Arg.Any<CancellationToken>());
 
-        await _repositorio.Received(1).GuardarCambiosAsync(
-            Arg.Any<CancellationToken>());
+        await _repositorio.Received(1)
+            .GuardarCambiosAsync(
+                Arg.Any<CancellationToken>());
+
+        await _busEventos.Received(1)
+            .PublicarAsync(
+                Arg.Any<ProductoCreadoEvento>(),
+                Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -70,16 +83,24 @@ public sealed class CrearProductoComandoHandlerTests
             CancellationToken.None);
 
         Assert.True(resultado.EsFallo);
+
         Assert.Equal(
             ErroresProducto.NombreDuplicado,
             resultado.Error);
 
-        await _repositorio.DidNotReceive().AgregarAsync(
-            Arg.Any<Producto>(),
-            Arg.Any<CancellationToken>());
+        await _repositorio.DidNotReceive()
+            .AgregarAsync(
+                Arg.Any<Producto>(),
+                Arg.Any<CancellationToken>());
 
-        await _repositorio.DidNotReceive().GuardarCambiosAsync(
-            Arg.Any<CancellationToken>());
+        await _repositorio.DidNotReceive()
+            .GuardarCambiosAsync(
+                Arg.Any<CancellationToken>());
+
+        await _busEventos.DidNotReceive()
+            .PublicarAsync(
+                Arg.Any<ProductoCreadoEvento>(),
+                Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -98,7 +119,8 @@ public sealed class CrearProductoComandoHandlerTests
             .Returns(false);
 
         _repositorio
-            .GuardarCambiosAsync(Arg.Any<CancellationToken>())
+            .GuardarCambiosAsync(
+                Arg.Any<CancellationToken>())
             .Returns(1);
 
         var resultado = await _handler.Handle(
@@ -107,16 +129,22 @@ public sealed class CrearProductoComandoHandlerTests
 
         Assert.True(resultado.EsExitoso);
 
-        await _repositorio.Received(1).ExisteNombreAsync(
-            "Webcam profesional",
-            null,
-            Arg.Any<CancellationToken>());
+        await _repositorio.Received(1)
+            .ExisteNombreAsync(
+                "Webcam profesional",
+                null,
+                Arg.Any<CancellationToken>());
 
-        await _repositorio.Received(1).AgregarAsync(
-            Arg.Is<Producto>(producto =>
-                producto != null &&
-                producto.Nombre == "Webcam profesional"),
-            Arg.Any<CancellationToken>());
+        await _repositorio.Received(1)
+            .AgregarAsync(
+                Arg.Is<Producto>(p =>
+                    p.Nombre == "Webcam profesional"),
+                Arg.Any<CancellationToken>());
+
+        await _busEventos.Received(1)
+            .PublicarAsync(
+                Arg.Any<ProductoCreadoEvento>(),
+                Arg.Any<CancellationToken>());
     }
 
     private static CrearProductoComando CrearComandoValido()

@@ -1,5 +1,7 @@
+using Catalog.Application.Abstracciones.Mensajeria;
 using Catalog.Application.Abstracciones.Persistencia;
 using Catalog.Application.Common.Results;
+using Catalog.Application.Eventos.Integracion;
 using Catalog.Domain.Productos;
 using MediatR;
 
@@ -9,11 +11,14 @@ internal sealed class CrearProductoComandoHandler
     : IRequestHandler<CrearProductoComando, Resultado<Guid>>
 {
     private readonly IRepositorioProductos _repositorio;
+    private readonly IBusEventos _busEventos;
 
     public CrearProductoComandoHandler(
-        IRepositorioProductos repositorio)
+        IRepositorioProductos repositorio,
+        IBusEventos busEventos)
     {
         _repositorio = repositorio;
+        _busEventos = busEventos;
     }
 
     public async Task<Resultado<Guid>> Handle(
@@ -45,6 +50,18 @@ internal sealed class CrearProductoComandoHandler
             cancellationToken);
 
         await _repositorio.GuardarCambiosAsync(
+            cancellationToken);
+
+        var evento = new ProductoCreadoEvento(
+            Guid.NewGuid(),
+            DateTime.UtcNow,
+            producto.Id,
+            producto.Nombre,
+            producto.Precio,
+            producto.Categoria);
+
+        await _busEventos.PublicarAsync(
+            evento,
             cancellationToken);
 
         return producto.Id;

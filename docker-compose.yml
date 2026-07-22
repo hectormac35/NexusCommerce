@@ -17,7 +17,6 @@ services:
       timeout: 5s
       retries: 10
 
-
   postgres-identidad:
     image: postgres:18-alpine
     container_name: nexuscommerce-postgres-identidad
@@ -36,6 +35,24 @@ services:
       timeout: 5s
       retries: 10
 
+  rabbitmq:
+    image: rabbitmq:4.1-management-alpine
+    container_name: nexuscommerce-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: nexus
+      RABBITMQ_DEFAULT_PASS: nexus_rabbit_password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - nexuscommerce_rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   catalog-api:
     build:
       context: .
@@ -46,10 +63,22 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__Catalogo: Host=postgres-catalogo;Port=5432;Database=nexus_catalogo;Username=nexus;Password=nexus_dev_password
+      Jwt__Clave: NexusCommerce-Development-Key-2026-Muy-Segura-Para-JWT
+      Jwt__Emisor: NexusCommerce.Identity
+      Jwt__Audiencia: NexusCommerce.Clientes
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Puerto: 5672
+      RabbitMq__Usuario: nexus
+      RabbitMq__Contrasena: nexus_rabbit_password
+      RabbitMq__VirtualHost: /
+      RabbitMq__Exchange: nexuscommerce.eventos
+      RabbitMq__NombreCliente: NexusCommerce.Catalog
     ports:
       - "5101:8080"
     depends_on:
       postgres-catalogo:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     healthcheck:
       test:
@@ -89,3 +118,4 @@ services:
 volumes:
   nexuscommerce_identidad_data:
   nexuscommerce_catalogo_data:
+  nexuscommerce_rabbitmq_data:
