@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-api
+  namespace: nexuscommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalog-api
+  template:
+    metadata:
+      labels:
+        app: catalog-api
+    spec:
+      containers:
+        - name: catalog-api
+          image: nexuscommerce-catalog-api:k8s
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+            - name: ConnectionStrings__Catalogo
+              value: Host=postgres-catalogo;Port=5432;Database=nexus_catalogo;Username=nexus;Password=nexus_dev_password
+            - name: Jwt__Clave
+              valueFrom:
+                secretKeyRef:
+                  name: nexuscommerce-secrets
+                  key: jwt-clave
+            - name: Jwt__Emisor
+              value: NexusCommerce.Identity
+            - name: Jwt__Audiencia
+              value: NexusCommerce.Clientes
+            - name: RabbitMq__Host
+              value: rabbitmq
+            - name: RabbitMq__Puerto
+              value: "5672"
+            - name: RabbitMq__Usuario
+              valueFrom:
+                secretKeyRef:
+                  name: nexuscommerce-secrets
+                  key: rabbitmq-usuario
+            - name: RabbitMq__Contrasena
+              valueFrom:
+                secretKeyRef:
+                  name: nexuscommerce-secrets
+                  key: rabbitmq-contrasena
+            - name: RabbitMq__VirtualHost
+              value: /
+            - name: RabbitMq__Exchange
+              value: nexuscommerce.eventos
+            - name: RabbitMq__NombreCliente
+              value: NexusCommerce.Catalog.Kubernetes
+            - name: OpenTelemetry__OtlpEndpoint
+              value: http://jaeger:4317
+            - name: Outbox__Habilitado
+              value: "true"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 12
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-api
+  namespace: nexuscommerce
+spec:
+  selector:
+    app: catalog-api
+  ports:
+    - port: 8080
+      targetPort: 8080
