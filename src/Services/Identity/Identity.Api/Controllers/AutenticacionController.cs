@@ -1,4 +1,5 @@
 using Identity.Api.Contratos.Autenticacion;
+using Identity.Application.Autenticacion.CerrarSesion;
 using Identity.Application.Autenticacion.IniciarSesion;
 using Identity.Application.Autenticacion.RefrescarSesion;
 using Identity.Application.Autenticacion.Registrar;
@@ -124,6 +125,43 @@ public sealed class AutenticacionController(
         if (resultado.EsExitoso)
         {
             return Ok(resultado.Valor);
+        }
+
+        var estado = resultado.Error.Tipo switch
+        {
+            TipoError.NoAutorizado =>
+                StatusCodes.Status401Unauthorized,
+
+            TipoError.Validacion =>
+                StatusCodes.Status400BadRequest,
+
+            _ =>
+                StatusCodes.Status500InternalServerError
+        };
+
+        return Problem(
+            statusCode: estado,
+            title: resultado.Error.Codigo,
+            detail: resultado.Error.Mensaje);
+    }
+
+
+    [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> CerrarSesion(
+        CerrarSesionPeticion peticion,
+        CancellationToken cancellationToken)
+    {
+        var resultado = await sender.Send(
+            new CerrarSesionComando(
+                peticion.RefreshToken),
+            cancellationToken);
+
+        if (resultado.EsExitoso)
+        {
+            return NoContent();
         }
 
         var estado = resultado.Error.Tipo switch
