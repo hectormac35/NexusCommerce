@@ -8,6 +8,15 @@ internal sealed class CatalogoApiFactory(
     string cadenaConexion)
     : WebApplicationFactory<Program>
 {
+    public const string JwtClave =
+        "NexusCommerce-Development-Key-2026-Super-Segura-Minimo-32";
+
+    public const string JwtEmisor =
+        "NexusCommerce.Identity";
+
+    public const string JwtAudiencia =
+        "NexusCommerce.Clientes";
+
     protected override void ConfigureWebHost(
         IWebHostBuilder builder)
     {
@@ -20,7 +29,16 @@ internal sealed class CatalogoApiFactory(
                     new Dictionary<string, string?>
                     {
                         ["ConnectionStrings:Catalogo"] =
-                            cadenaConexion
+                            cadenaConexion,
+
+                        ["Jwt:Clave"] =
+                            JwtClave,
+
+                        ["Jwt:Emisor"] =
+                            JwtEmisor,
+
+                        ["Jwt:Audiencia"] =
+                            JwtAudiencia
                     });
             });
     }

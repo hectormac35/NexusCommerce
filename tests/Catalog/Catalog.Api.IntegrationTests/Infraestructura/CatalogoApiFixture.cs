@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using Testcontainers.PostgreSql;
 
 namespace Catalog.Api.IntegrationTests.Infraestructura;
@@ -23,6 +24,11 @@ public sealed class CatalogoApiFixture : IAsyncLifetime
             _postgres.GetConnectionString());
 
         Cliente = _factory.CreateClient();
+
+        Cliente.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                GeneradorJwtPruebas.GenerarAdministrador());
     }
 
     public async Task DisposeAsync()

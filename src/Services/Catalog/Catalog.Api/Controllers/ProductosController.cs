@@ -7,6 +7,7 @@ using Catalog.Application.Productos.Comandos.ActualizarProducto;
 using Catalog.Application.Productos.Consultas.ObtenerProductoPorId;
 using Catalog.Application.Productos.Consultas.ObtenerProductos;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Catalog.Api.Controllers;
@@ -51,6 +52,7 @@ public sealed class ProductosController : ControllerBase
             : Ok(producto);
     }
 
+    [Authorize(Roles = "Administrador")]
     [HttpPost]
     [ProducesResponseType<CrearProductoRespuesta>(
         StatusCodes.Status201Created)]
@@ -102,6 +104,7 @@ public sealed class ProductosController : ControllerBase
             respuesta);
     }
 
+    [Authorize(Roles = "Administrador")]
     [HttpPut("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -154,6 +157,7 @@ public sealed class ProductosController : ControllerBase
     }
 
 
+    [Authorize(Roles = "Administrador")]
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

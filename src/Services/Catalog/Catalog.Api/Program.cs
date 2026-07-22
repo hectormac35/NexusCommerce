@@ -1,3 +1,6 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Catalog.Api.ManejoErrores;
 using Catalog.Application;
 using Catalog.Infrastructure;
@@ -28,6 +31,45 @@ builder.Services
         cadenaConexion,
         name: "postgres-catalogo",
         tags: ["ready"]);
+
+
+var jwtClave = builder.Configuration["Jwt:Clave"]
+    ?? throw new InvalidOperationException(
+        "No se ha configurado 'Jwt:Clave'.");
+
+var jwtEmisor = builder.Configuration["Jwt:Emisor"]
+    ?? throw new InvalidOperationException(
+        "No se ha configurado 'Jwt:Emisor'.");
+
+var jwtAudiencia = builder.Configuration["Jwt:Audiencia"]
+    ?? throw new InvalidOperationException(
+        "No se ha configurado 'Jwt:Audiencia'.");
+
+builder.Services
+    .AddAuthentication(
+        JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(opciones =>
+    {
+        opciones.TokenValidationParameters =
+            new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = jwtEmisor,
+
+                ValidateAudience = true,
+                ValidAudience = jwtAudiencia,
+
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey =
+                    new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(jwtClave)),
+
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+    });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -60,6 +102,9 @@ app.MapHealthChecks(
         Predicate = registro =>
             registro.Tags.Contains("ready")
     });
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
