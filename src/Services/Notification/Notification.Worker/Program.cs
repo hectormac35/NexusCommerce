@@ -1,7 +1,10 @@
-using Notification.Worker;
+using Notification.Infrastructure;
 
 var builder = Host.CreateApplicationBuilder(args);
-builder.Services.AddHostedService<Worker>();
+
+builder.Services.AgregarInfraestructuraNotificaciones(
+    builder.Configuration);
 
 var host = builder.Build();
+
 host.Run();
