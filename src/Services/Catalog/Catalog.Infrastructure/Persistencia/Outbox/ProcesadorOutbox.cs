@@ -40,10 +40,20 @@ internal sealed class ProcesadorOutbox(
 
         await ProcesarPendientesAsync(stoppingToken);
 
-        while (await temporizador.WaitForNextTickAsync(
-            stoppingToken))
+        try
         {
-            await ProcesarPendientesAsync(stoppingToken);
+            while (await temporizador.WaitForNextTickAsync(
+                stoppingToken))
+            {
+                await ProcesarPendientesAsync(
+                    stoppingToken);
+            }
+        }
+        catch (OperationCanceledException)
+            when (stoppingToken.IsCancellationRequested)
+        {
+            logger.LogInformation(
+                "Procesador Outbox detenido.");
         }
     }
 
@@ -61,23 +71,41 @@ internal sealed class ProcesadorOutbox(
             var busEventos = alcance.ServiceProvider
                 .GetRequiredService<IBusEventos>();
 
+            await using var transaccion =
+                await contexto.Database.BeginTransactionAsync(
+                    cancellationToken);
+
             var mensajes = await contexto.MensajesOutbox
-                .Where(mensaje =>
-                    mensaje.ProcesadoEnUtc == null &&
-                    mensaje.Intentos <
-                        _opciones.MaximoIntentos)
-                .OrderBy(mensaje =>
-                    mensaje.OcurridoEnUtc)
-                .Take(_opciones.TamanoLote)
+                .FromSqlInterpolated(
+                    $"""
+                    SELECT
+                        id,
+                        ocurrido_en_utc,
+                        tipo,
+                        contenido,
+                        procesado_en_utc,
+                        ultimo_intento_en_utc,
+                        intentos,
+                        error
+                    FROM mensajes_outbox
+                    WHERE procesado_en_utc IS NULL
+                      AND intentos < {_opciones.MaximoIntentos}
+                    ORDER BY ocurrido_en_utc
+                    FOR UPDATE SKIP LOCKED
+                    LIMIT {_opciones.TamanoLote}
+                    """)
                 .ToListAsync(cancellationToken);
 
             if (mensajes.Count == 0)
             {
+                await transaccion.CommitAsync(
+                    cancellationToken);
+
                 return;
             }
 
             logger.LogInformation(
-                "Procesando {Cantidad} mensajes Outbox.",
+                "Procesando {Cantidad} mensajes Outbox bloqueados para esta instancia.",
                 mensajes.Count);
 
             foreach (var mensaje in mensajes)
@@ -88,11 +116,18 @@ internal sealed class ProcesadorOutbox(
                     busEventos,
                     cancellationToken);
             }
+
+            await transaccion.CommitAsync(
+                cancellationToken);
+
+            logger.LogInformation(
+                "Lote Outbox confirmado. Mensajes: {Cantidad}.",
+                mensajes.Count);
         }
         catch (OperationCanceledException)
             when (cancellationToken.IsCancellationRequested)
         {
-            // El servicio se está deteniendo.
+            // La transacción se revierte al detener el servicio.
         }
         catch (Exception excepcion)
         {

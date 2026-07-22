@@ -1,3 +1,5 @@
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -14,6 +16,33 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ManejadorExcepcionesGlobal>();
+
+builder.Services
+    .AddOpenTelemetry()
+    .ConfigureResource(recurso =>
+        recurso.AddService(
+            serviceName: "NexusCommerce.Catalog",
+            serviceVersion: "1.0.0"))
+    .WithTracing(trazas =>
+    {
+        trazas
+            .AddAspNetCoreInstrumentation(opciones =>
+            {
+                opciones.Filter = contexto =>
+                    !contexto.Request.Path.StartsWithSegments(
+                        "/health");
+            })
+            .AddHttpClientInstrumentation()
+            .AddEntityFrameworkCoreInstrumentation()
+            .AddSource("NexusCommerce.Catalog")
+            .AddOtlpExporter(opciones =>
+            {
+                opciones.Endpoint = new Uri(
+                    builder.Configuration[
+                        "OpenTelemetry:OtlpEndpoint"]
+                    ?? "http://localhost:4317");
+            });
+    });
 
 builder.Services.AgregarAplicacionCatalogo();
 

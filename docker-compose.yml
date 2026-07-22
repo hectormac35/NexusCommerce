@@ -1,4 +1,15 @@
 services:
+  jaeger:
+    image: jaegertracing/all-in-one:1.76.0
+    container_name: nexuscommerce-jaeger
+    restart: unless-stopped
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+
   postgres-catalogo:
     image: postgres:18-alpine
     container_name: nexuscommerce-postgres-catalogo
@@ -73,6 +84,7 @@ services:
       RabbitMq__VirtualHost: /
       RabbitMq__Exchange: nexuscommerce.eventos
       RabbitMq__NombreCliente: NexusCommerce.Catalog
+      OpenTelemetry__OtlpEndpoint: http://jaeger:4317
     ports:
       - "5101:8080"
     depends_on:
@@ -100,6 +112,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       ReverseProxy__Clusters__cluster-catalogo__Destinations__catalogo-api__Address: http://catalog-api:8080/
+      OpenTelemetry__OtlpEndpoint: http://jaeger:4317
     ports:
       - "5000:8080"
     depends_on:

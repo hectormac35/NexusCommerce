@@ -1,3 +1,5 @@
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +11,32 @@ builder.Services
 
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
+
+builder.Services
+    .AddOpenTelemetry()
+    .ConfigureResource(recurso =>
+        recurso.AddService(
+            serviceName: "NexusCommerce.Gateway",
+            serviceVersion: "1.0.0"))
+    .WithTracing(trazas =>
+    {
+        trazas
+            .AddAspNetCoreInstrumentation(opciones =>
+            {
+                opciones.Filter = contexto =>
+                    !contexto.Request.Path.StartsWithSegments(
+                        "/health");
+            })
+            .AddHttpClientInstrumentation()
+            .AddSource("NexusCommerce.Gateway")
+            .AddOtlpExporter(opciones =>
+            {
+                opciones.Endpoint = new Uri(
+                    builder.Configuration[
+                        "OpenTelemetry:OtlpEndpoint"]
+                    ?? "http://localhost:4317");
+            });
+    });
 
 var app = builder.Build();
 
