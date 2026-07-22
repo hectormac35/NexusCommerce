@@ -50,6 +50,7 @@ public sealed class CrearProductoComandoHandlerTests
 
         await _repositorio.Received(1).AgregarAsync(
             Arg.Is<Producto>(producto =>
+                producto != null &&
                 producto.Id == resultado.Valor &&
                 producto.Nombre == comando.Nombre &&
                 producto.Precio == comando.Precio &&
@@ -137,8 +138,9 @@ public sealed class CrearProductoComandoHandlerTests
 
         await _repositorio.Received(1)
             .AgregarAsync(
-                Arg.Is<Producto>(p =>
-                    p.Nombre == "Webcam profesional"),
+                Arg.Is<Producto>(producto =>
+                    producto != null &&
+                    producto.Nombre == "Webcam profesional"),
                 Arg.Any<CancellationToken>());
 
         await _busEventos.Received(1)
