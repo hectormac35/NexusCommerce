@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
+builder.Services.AddHealthChecks();
 
 builder.Services.AddExceptionHandler<
     ManejadorExcepcionesGlobal>();
@@ -79,6 +80,10 @@ app.MapGet("/", () => Results.Ok(new
     servicio = "Identity.Api",
     estado = "Ejecutándose"
 }));
+
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/live");
+app.MapHealthChecks("/health/ready");
 
 app.MapControllers();
 
