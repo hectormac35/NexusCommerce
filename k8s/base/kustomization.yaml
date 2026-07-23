@@ -9,3 +9,6 @@ resources:
   - jaeger.yaml
   - catalog-api.yaml
   - gateway.yaml
+  - postgres-identidad.yaml
+  - identity-api.yaml
+  - notification-worker.yaml

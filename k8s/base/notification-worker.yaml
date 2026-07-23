@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-worker
+  namespace: nexuscommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-worker
+  template:
+    metadata:
+      labels:
+        app: notification-worker
+    spec:
+      containers:
+      - name: notification-worker
+        image: nexuscommerce-notification-worker:k8s
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: RabbitMq__Host
+          value: rabbitmq
+        - name: RabbitMq__Puerto
+          value: "5672"
+        - name: RabbitMq__Usuario
+          valueFrom:
+            secretKeyRef:
+              name: nexuscommerce-secrets
+              key: rabbitmq-usuario
+        - name: RabbitMq__Contrasena
+          valueFrom:
+            secretKeyRef:
+              name: nexuscommerce-secrets
+              key: rabbitmq-contrasena
+        - name: RabbitMq__VirtualHost
+          value: /
+        - name: RabbitMq__Exchange
+          value: nexuscommerce.eventos
+        - name: OpenTelemetry__OtlpEndpoint
+          value: http://jaeger:4317
