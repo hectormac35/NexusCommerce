@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-api
+  namespace: nexuscommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: identity-api
+  template:
+    metadata:
+      labels:
+        app: identity-api
+    spec:
+      containers:
+      - name: identity-api
+        image: nexuscommerce-identity-api:k8s
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: Development
+        - name: ASPNETCORE_URLS
+          value: http://+:8080
+        - name: ConnectionStrings__Identidad
+          value: Host=postgres-identidad;Port=5432;Database=nexus_identidad;Username=nexus;Password=nexus_dev_password
+        - name: Jwt__Clave
+          valueFrom:
+            secretKeyRef:
+              name: nexuscommerce-secrets
+              key: jwt-clave
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-api
+  namespace: nexuscommerce
+spec:
+  selector:
+    app: identity-api
+  ports:
+  - port: 8080
+    targetPort: 8080
