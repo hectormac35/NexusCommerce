@@ -29,6 +29,16 @@ internal sealed class RepositorioUsuarios(
                 cancellationToken);
     }
 
+    public Task<Usuario?> ObtenerParaActualizarAsync(
+        Guid usuarioId,
+        CancellationToken cancellationToken = default)
+    {
+        return contexto.Usuarios
+            .FirstOrDefaultAsync(
+                usuario => usuario.Id == usuarioId,
+                cancellationToken);
+    }
+
     public Task<Usuario?> ObtenerPorCorreoAsync(
         string correo,
         CancellationToken cancellationToken = default)
@@ -38,6 +48,16 @@ internal sealed class RepositorioUsuarios(
             .FirstOrDefaultAsync(
                 usuario => usuario.Correo == correo,
                 cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Usuario>> ObtenerTodosAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await contexto.Usuarios
+            .AsNoTracking()
+            .OrderByDescending(
+                usuario => usuario.FechaCreacionUtc)
+            .ToListAsync(cancellationToken);
     }
 
     public Task<CredencialUsuario?> ObtenerCredencialAsync(

@@ -9,6 +9,7 @@ import {
   Users,
   Warehouse,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useProducts } from '../../catalog/hooks/useProducts'
 import { useAuthStore } from '../../auth/store/authStore'
 import { Badge } from '../../../shared/ui/badge/Badge'
@@ -16,42 +17,36 @@ import { Card } from '../../../shared/ui/card/Card'
 import { StatCard } from '../../../shared/components/data-display/StatCard'
 import { QuickActions } from '../../../shared/components/dashboard/QuickActions'
 import { RecentActivity } from '../../../shared/components/dashboard/RecentActivity'
+import { InventoryChart } from '../../../shared/components/dashboard/InventoryChart'
+import { usePlatformHealth } from '../../platform-health/hooks/usePlatformHealth'
 
-const services = [
-  {
-    name: 'API Gateway',
-    description: 'Enrutamiento mediante YARP',
-    status: 'Operativo',
-    latency: '18 ms',
-  },
-  {
-    name: 'Identity API',
-    description: 'Autenticación y usuarios',
-    status: 'Operativo',
-    latency: '24 ms',
-  },
-  {
-    name: 'Catalog API',
-    description: 'Productos e inventario',
-    status: 'Operativo',
-    latency: '31 ms',
-  },
-  {
-    name: 'RabbitMQ',
-    description: 'Mensajería asíncrona',
-    status: 'Operativo',
-    latency: '12 ms',
-  },
-]
 
 export function HomePage() {
   const { data: products = [], isLoading, isError } = useProducts()
+  const {
+    data: platformHealth,
+    isLoading: isHealthLoading,
+    isError: isHealthError,
+  } = usePlatformHealth()
   const usuario = useAuthStore((state) => state.usuario)
 
   const activeProducts = products.filter((product) => product.estaActivo).length
   const totalStock = products.reduce((total, product) => total + product.stock, 0)
   const lowStockProducts = products.filter(
     (product) => product.stock > 0 && product.stock <= 5,
+  ).length
+
+  const serviceDescriptions: Record<string, string> = {
+    Gateway: 'Enrutamiento mediante YARP',
+    Identity: 'Autenticación y usuarios',
+    Catalog: 'Productos e inventario',
+    RabbitMQ: 'Mensajería asíncrona',
+    Jaeger: 'Trazabilidad distribuida',
+  }
+
+  const services = platformHealth?.services ?? []
+  const healthyServices = services.filter(
+    (service) => service.status === 'Healthy',
   ).length
 
   return (
@@ -229,51 +224,151 @@ export function HomePage() {
         </Card>
 
         <Card className="overflow-hidden">
-          <div className="border-b border-slate-800 p-6">
-            <div className="flex items-center gap-2">
-              <Server size={18} className="text-emerald-400" />
-              <h2 className="font-semibold text-white">
-                Estado de la plataforma
-              </h2>
+          <div className="flex items-center justify-between gap-4 border-b border-slate-800 p-6">
+            <div>
+              <div className="flex items-center gap-2">
+                <Server size={18} className="text-emerald-400" />
+
+                <h2 className="font-semibold text-white">
+                  Estado de la plataforma
+                </h2>
+              </div>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Datos obtenidos en tiempo real
+              </p>
             </div>
 
-            <p className="mt-1 text-sm text-slate-500">
-              Servicios principales de NexusCommerce
-            </p>
+            {!isHealthLoading && !isHealthError && (
+              <Badge
+                variant={
+                  healthyServices === services.length
+                    ? 'success'
+                    : 'warning'
+                }
+              >
+                {healthyServices}/{services.length} disponibles
+              </Badge>
+            )}
           </div>
 
           <div className="space-y-2 p-4">
-            {services.map((service) => (
-              <div
-                key={service.name}
-                className="rounded-xl border border-transparent p-4 transition hover:border-slate-800 hover:bg-slate-800/40"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.55)]" />
+            {isHealthLoading && (
+              <div className="flex min-h-64 items-center justify-center">
+                <p className="text-sm text-slate-500">
+                  Comprobando servicios...
+                </p>
+              </div>
+            )}
 
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-slate-200">
-                        {service.name}
-                      </p>
-                      <p className="mt-1 truncate text-xs text-slate-500">
-                        {service.description}
-                      </p>
+            {isHealthError && (
+              <div className="flex min-h-64 items-center justify-center">
+                <p className="text-sm text-red-300">
+                  No se ha podido obtener el estado de la plataforma.
+                </p>
+              </div>
+            )}
+
+            {!isHealthLoading &&
+              !isHealthError &&
+              services.map((service) => {
+                const isHealthy = service.status === 'Healthy'
+
+                return (
+                  <div
+                    key={service.name}
+                    className="rounded-xl border border-transparent p-3 transition hover:border-slate-800 hover:bg-slate-800/40"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span
+                          className={[
+                            'h-2.5 w-2.5 shrink-0 rounded-full',
+                            isHealthy
+                              ? 'bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.55)]'
+                              : 'bg-red-400 shadow-[0_0_12px_rgba(248,113,113,0.5)]',
+                          ].join(' ')}
+                        />
+
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-slate-200">
+                            {service.name}
+                          </p>
+
+                          <p className="mt-1 truncate text-xs text-slate-500">
+                            {serviceDescriptions[service.name] ??
+                              'Servicio de plataforma'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 text-right">
+                        <Badge variant={isHealthy ? 'success' : 'danger'}>
+                          {service.status}
+                        </Badge>
+
+                        <p className="mt-1.5 text-xs text-slate-600">
+                          {service.responseTimeMs} ms
+                        </p>
+                      </div>
                     </div>
                   </div>
+                )
+              })}
+          </div>
 
-                  <div className="shrink-0 text-right">
-                    <Badge variant="success">{service.status}</Badge>
-                    <p className="mt-2 text-xs text-slate-600">
-                      {service.latency}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="border-t border-slate-800 p-4">
+            <Link
+              to="/plataforma"
+              className="flex items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-blue-500/40 hover:bg-slate-800 hover:text-white"
+            >
+              Ver Platform Health completo
+              <ArrowRight size={16} />
+            </Link>
           </div>
         </Card>
       </section>
+
+      <Card className="overflow-hidden">
+        <div className="flex flex-col gap-4 border-b border-slate-800 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-semibold text-white">
+              Distribución del inventario
+            </h2>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Stock disponible por producto
+            </p>
+          </div>
+
+          <Badge variant="primary">
+            {totalStock} unidades
+          </Badge>
+        </div>
+
+        <div className="p-5 sm:p-6">
+          {isLoading ? (
+            <div className="flex h-72 items-center justify-center">
+              <p className="text-sm text-slate-500">
+                Cargando inventario...
+              </p>
+            </div>
+          ) : products.length === 0 ? (
+            <div className="flex h-72 items-center justify-center">
+              <p className="text-sm text-slate-500">
+                No hay datos de inventario.
+              </p>
+            </div>
+          ) : (
+            <InventoryChart
+              data={products.map((product) => ({
+                nombre: product.nombre,
+                stock: product.stock,
+              }))}
+            />
+          )}
+        </div>
+      </Card>
 
       <section className="grid gap-6 xl:grid-cols-[1.25fr_1fr]">
         <Card className="overflow-hidden">

@@ -1,3 +1,5 @@
+using NexusCommerce.Gateway.PlatformHealth;
+using NexusCommerce.Gateway.PlatformHealth.Services;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -11,6 +13,19 @@ builder.Services
 
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IPlatformHealthService, PlatformHealthService>();
+
+builder.Services.AddCors(opciones =>
+{
+    opciones.AddPolicy("Frontend", politica =>
+    {
+        politica
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 builder.Services
     .AddOpenTelemetry()
@@ -40,6 +55,8 @@ builder.Services
 
 var app = builder.Build();
 
+app.UseCors("Frontend");
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -61,6 +78,7 @@ app.MapHealthChecks(
 
 app.MapHealthChecks("/health/ready");
 
+app.MapPlatformHealth();
 app.MapReverseProxy();
 
 app.Run();

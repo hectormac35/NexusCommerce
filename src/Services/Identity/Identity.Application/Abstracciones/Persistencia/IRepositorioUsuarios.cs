@@ -13,8 +13,15 @@ public interface IRepositorioUsuarios
         Guid usuarioId,
         CancellationToken cancellationToken = default);
 
+    Task<Usuario?> ObtenerParaActualizarAsync(
+        Guid usuarioId,
+        CancellationToken cancellationToken = default);
+
     Task<Usuario?> ObtenerPorCorreoAsync(
         string correo,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Usuario>> ObtenerTodosAsync(
         CancellationToken cancellationToken = default);
 
     Task<CredencialUsuario?> ObtenerCredencialAsync(
