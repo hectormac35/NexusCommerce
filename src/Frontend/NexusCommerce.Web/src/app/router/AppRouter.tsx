@@ -4,6 +4,7 @@ import { LoginPage } from '../../features/auth/pages/LoginPage'
 import { CatalogPage } from '../../features/catalog/pages/CatalogPage'
 import { PlatformHealthPage } from '../../features/platform-health/pages/PlatformHealthPage'
 import { RabbitMqPage } from '../../features/rabbitmq/pages/RabbitMqPage'
+import { JaegerPage } from '../../features/jaeger/pages/JaegerPage'
 import { HomePage } from '../../features/dashboard/pages/HomePage'
 import { UsersPage } from '../../features/users/pages/UsersPage'
 import { OrdersPage } from '../../features/orders/pages/OrdersPage'
@@ -21,6 +22,7 @@ export function AppRouter() {
           <Route path="pedidos/:pedidoId" element={<OrderDetailPage />} />
           <Route path="plataforma" element={<PlatformHealthPage />} />
           <Route path="rabbitmq" element={<RabbitMqPage />} />
+          <Route path="trazas" element={<JaegerPage />} />
           <Route path="acceso" element={<LoginPage />} />
         </Route>
       </Routes>

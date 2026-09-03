@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: gateway
-          image: nexuscommerce-gateway:rabbitmq-monitoring-v1
+          image: nexuscommerce-gateway:jaeger-monitoring-v1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
@@ -30,6 +30,8 @@ spec:
               value: http://orders-api:8080/
             - name: OpenTelemetry__OtlpEndpoint
               value: http://jaeger:4317
+            - name: Jaeger__QueryUrl
+              value: http://jaeger:16686
             - name: RabbitMq__ManagementUrl
               value: http://rabbitmq:15672
             - name: RabbitMq__Usuario

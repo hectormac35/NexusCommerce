@@ -1,7 +1,9 @@
 using NexusCommerce.Gateway.PlatformHealth;
 using NexusCommerce.Gateway.PlatformHealth.Services;
 using NexusCommerce.Gateway.RabbitMq;
+using NexusCommerce.Gateway.Jaeger;
 using NexusCommerce.Gateway.RabbitMq.Services;
+using NexusCommerce.Gateway.Jaeger.Services;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -20,6 +22,10 @@ builder.Services.AddScoped<IPlatformHealthService, PlatformHealthService>();
 builder.Services.AddScoped<
     IRabbitMqMonitoringService,
     RabbitMqMonitoringService>();
+
+builder.Services.AddScoped<
+    IJaegerMonitoringService,
+    JaegerMonitoringService>();
 
 builder.Services.AddCors(opciones =>
 {
@@ -85,6 +91,7 @@ app.MapHealthChecks("/health/ready");
 
 app.MapPlatformHealth();
 app.MapRabbitMqMonitoring();
+app.MapJaegerMonitoring();
 app.MapReverseProxy();
 
 app.Run();
