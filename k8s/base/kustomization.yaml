@@ -12,3 +12,5 @@ resources:
   - postgres-identidad.yaml
   - identity-api.yaml
   - notification-worker.yaml
+  - postgres-orders.yaml
+  - orders-api.yaml

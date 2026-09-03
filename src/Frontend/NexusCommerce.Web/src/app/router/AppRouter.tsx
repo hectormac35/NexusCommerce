@@ -5,6 +5,8 @@ import { CatalogPage } from '../../features/catalog/pages/CatalogPage'
 import { PlatformHealthPage } from '../../features/platform-health/pages/PlatformHealthPage'
 import { HomePage } from '../../features/dashboard/pages/HomePage'
 import { UsersPage } from '../../features/users/pages/UsersPage'
+import { OrdersPage } from '../../features/orders/pages/OrdersPage'
+import { OrderDetailPage } from '../../features/orders/pages/OrderDetailPage'
 
 export function AppRouter() {
   return (
@@ -14,6 +16,8 @@ export function AppRouter() {
           <Route index element={<HomePage />} />
           <Route path="catalogo" element={<CatalogPage />} />
           <Route path="usuarios" element={<UsersPage />} />
+          <Route path="pedidos" element={<OrdersPage />} />
+          <Route path="pedidos/:pedidoId" element={<OrderDetailPage />} />
           <Route path="plataforma" element={<PlatformHealthPage />} />
           <Route path="acceso" element={<LoginPage />} />
         </Route>

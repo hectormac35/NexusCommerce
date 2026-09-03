@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gateway
+  name: orders-api
   namespace: nexuscommerce
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: gateway
+      app: orders-api
   template:
     metadata:
       labels:
-        app: gateway
+        app: orders-api
     spec:
       containers:
-        - name: gateway
-          image: nexuscommerce-gateway:orders-k8s-v1
+        - name: orders-api
+          image: nexuscommerce-orders-api:k8s
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
@@ -24,35 +24,30 @@ spec:
               value: Development
             - name: ASPNETCORE_URLS
               value: http://+:8080
-            - name: ReverseProxy__Clusters__cluster-catalogo__Destinations__catalogo-api__Address
-              value: http://catalog-api:8080/
-            - name: ReverseProxy__Clusters__cluster-pedidos__Destinations__pedidos-api__Address
-              value: http://orders-api:8080/
-            - name: OpenTelemetry__OtlpEndpoint
-              value: http://jaeger:4317
+            - name: ConnectionStrings__OrdersDatabase
+              value: Host=postgres-orders;Port=5432;Database=nexus_orders;Username=nexus;Password=nexus_dev_password
           readinessProbe:
             httpGet:
               path: /health/ready
               port: 8080
-            initialDelaySeconds: 5
+            initialDelaySeconds: 10
             periodSeconds: 5
+            failureThreshold: 12
           livenessProbe:
             httpGet:
               path: /health/live
               port: 8080
-            initialDelaySeconds: 15
+            initialDelaySeconds: 20
             periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: gateway
+  name: orders-api
   namespace: nexuscommerce
 spec:
-  type: NodePort
   selector:
-    app: gateway
+    app: orders-api
   ports:
     - port: 8080
       targetPort: 8080
-      nodePort: 30080

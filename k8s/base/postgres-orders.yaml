@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-orders-datos
+  namespace: nexuscommerce
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-orders
+  namespace: nexuscommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-orders
+  template:
+    metadata:
+      labels:
+        app: postgres-orders
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:18-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: nexus_orders
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: nexuscommerce-secrets
+                  key: postgres-usuario
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nexuscommerce-secrets
+                  key: postgres-contrasena
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - nexus
+                - -d
+                - nexus_orders
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - nexus
+                - -d
+                - nexus_orders
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          volumeMounts:
+            - name: datos
+              mountPath: /var/lib/postgresql
+      volumes:
+        - name: datos
+          persistentVolumeClaim:
+            claimName: postgres-orders-datos
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-orders
+  namespace: nexuscommerce
+spec:
+  selector:
+    app: postgres-orders
+  ports:
+    - port: 5432
+      targetPort: 5432

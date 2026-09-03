@@ -46,6 +46,25 @@ services:
       timeout: 5s
       retries: 10
 
+
+  postgres-orders:
+    image: postgres:18-alpine
+    container_name: nexuscommerce-postgres-orders
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nexus_orders
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: nexus_dev_password
+    ports:
+      - "55434:5432"
+    volumes:
+      - nexuscommerce_orders_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus -d nexus_orders"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   rabbitmq:
     image: rabbitmq:4.1-management-alpine
     container_name: nexuscommerce-rabbitmq
@@ -102,6 +121,32 @@ services:
       timeout: 5s
       retries: 10
 
+
+  orders-api:
+    build:
+      context: .
+      dockerfile: src/Services/Orders/Orders.Api/Dockerfile
+    container_name: nexuscommerce-orders-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__OrdersDatabase: Host=postgres-orders;Port=5432;Database=nexus_orders;Username=nexus;Password=nexus_dev_password
+    ports:
+      - "5301:8080"
+    depends_on:
+      postgres-orders:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl --fail --silent http://localhost:8080/health/ready > /dev/null || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   gateway:
     build:
       context: .
@@ -112,11 +157,14 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       ReverseProxy__Clusters__cluster-catalogo__Destinations__catalogo-api__Address: http://catalog-api:8080/
+      ReverseProxy__Clusters__cluster-pedidos__Destinations__pedidos-api__Address: http://orders-api:8080/
       OpenTelemetry__OtlpEndpoint: http://jaeger:4317
     ports:
       - "5000:8080"
     depends_on:
       catalog-api:
+        condition: service_healthy
+      orders-api:
         condition: service_healthy
     healthcheck:
       test:
@@ -129,6 +177,7 @@ services:
       retries: 10
 
 volumes:
+  nexuscommerce_orders_data:
   nexuscommerce_identidad_data:
   nexuscommerce_catalogo_data:
   nexuscommerce_rabbitmq_data:
