@@ -126,7 +126,9 @@ export function Topbar() {
                   Perfil
                 </DropdownMenuItem>
 
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => navigate('/configuracion')}
+                >
                   <Settings size={16} />
                   Configuración
                 </DropdownMenuItem>
