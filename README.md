@@ -19,7 +19,7 @@
 | **Catalog.Api** | Productos con CQRS + MediatR y validación FluentValidation. Publica `ProductoCreadoEvento` mediante Outbox |
 | **Orders.Api** | Pedidos con su ciclo de estados. Precio y stock se consultan al catálogo en el servidor |
 | **Notification.Worker** | Consume los eventos de RabbitMQ |
-| **Panel web** | React 19 + Vite, React Query, Zustand y Tailwind. Rutas protegidas y carga por página |
+| **Panel web** | React 19 + Vite, React Query, Zustand y Tailwind. Registro, rutas protegidas por sesión y por rol, carga por página |
 
 ---
 
@@ -74,6 +74,7 @@ npm run dev                         # http://localhost:5173
 ```
 
 Entra con el **administrador de demo** que se crea al primer arranque: `admin@nexuscommerce.local` / `Admin.Nexus2026!`.
+Cualquiera puede **crear una cuenta** desde la pantalla de acceso; empieza como *Cliente* y el administrador le asigna otro rol en **Usuarios**.
 
 | Dirección | Qué hay |
 |---|---|
@@ -107,7 +108,7 @@ Crea el clúster si no existe, construye y carga las cinco imágenes y aplica `k
 | `Identity.Domain.UnitTests` | Usuarios, credenciales y refresh tokens |
 | `Orders.Domain.UnitTests` | Ciclo de vida del pedido |
 | `Orders.Application.UnitTests` | Precio desde el catálogo, stock, productos inactivos, catálogo caído, validación |
-| Panel (Vitest) | Rutas protegidas y que el pedido no envíe cliente ni precio |
+| Panel (Vitest) | Rutas protegidas, registro (validación + inicio de sesión automático) y que el pedido no envíe cliente ni precio |
 
 ```bash
 dotnet test                                          # backend (Catalog.Api.IntegrationTests necesita PostgreSQL en :55432)

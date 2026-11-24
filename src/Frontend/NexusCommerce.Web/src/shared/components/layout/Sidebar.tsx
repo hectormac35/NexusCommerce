@@ -12,9 +12,9 @@ import { NavLink } from 'react-router-dom'
 import { useAuthStore } from '../../../features/auth/store/authStore'
 
 const navigation = [
-  { to: '/', label: 'Dashboard', icon: Gauge },
+  { to: '/', label: 'Panel', icon: Gauge },
   { to: '/catalogo', label: 'Productos', icon: Package },
-  { to: '/usuarios', label: 'Usuarios', icon: Users },
+  { to: '/usuarios', label: 'Usuarios', icon: Users, soloAdministrador: true },
   { to: '/pedidos', label: 'Pedidos', icon: ShoppingCart },
 ]
 
@@ -75,9 +75,11 @@ export function Sidebar() {
         </p>
 
         <nav className="mt-3 space-y-1">
-          {navigation.map((item) => (
-            <SidebarLink key={item.to} {...item} />
-          ))}
+          {navigation
+            .filter((item) => !item.soloAdministrador || usuario?.rol === 'Administrador')
+            .map((item) => (
+              <SidebarLink key={item.to} to={item.to} label={item.label} icon={item.icon} />
+            ))}
         </nav>
 
         <p className="mt-8 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">

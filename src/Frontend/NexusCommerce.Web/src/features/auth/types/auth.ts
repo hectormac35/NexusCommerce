@@ -17,3 +17,11 @@ export type AuthSession = {
   expiraEnSegundos: number
   usuario: AuthUser
 }
+
+export type RegistroRequest = {
+  nombre: string
+  apellidos: string
+  correo: string
+  contrasena: string
+  confirmacionContrasena: string
+}

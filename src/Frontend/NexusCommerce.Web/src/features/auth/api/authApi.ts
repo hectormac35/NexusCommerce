@@ -1,5 +1,5 @@
 import { apiClient } from '../../../shared/api/apiClient'
-import type { AuthSession, LoginRequest } from '../types/auth'
+import type { AuthSession, LoginRequest, RegistroRequest } from '../types/auth'
 
 export async function login(
   credentials: LoginRequest,
@@ -10,4 +10,9 @@ export async function login(
   )
 
   return response.data
+}
+
+/** Crea una cuenta nueva. Identity.Api siempre la crea con el rol Cliente. */
+export async function registrar(datos: RegistroRequest): Promise<void> {
+  await apiClient.post('/api/autenticacion/registro', datos)
 }

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useLogin } from '../hooks/useLogin'
 import {
   loginSchema,
@@ -137,8 +137,15 @@ export function LoginPage() {
             Usuario de demostración
           </p>
           <p className="mt-2">admin@nexuscommerce.local</p>
-          <p>NexusCommerce123!</p>
+          <p>Admin.Nexus2026!</p>
         </div>
+
+        <p className="mt-6 text-center text-sm text-slate-400">
+          ¿No tienes cuenta?{' '}
+          <Link to="/registro" className="font-semibold text-blue-400 hover:text-blue-300">
+            Crear una cuenta
+          </Link>
+        </p>
       </div>
     </section>
   )

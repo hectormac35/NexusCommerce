@@ -3,6 +3,8 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { MainLayout } from '../layouts/MainLayout'
 import { LoginPage } from '../../features/auth/pages/LoginPage'
 import { RutaProtegida } from './RutaProtegida'
+import { RutaSoloAdministrador } from './RutaSoloAdministrador'
+import { RegistroPage } from '../../features/auth/pages/RegistroPage'
 
 // Cada página se descarga cuando se visita por primera vez (bundle inicial más pequeño).
 const HomePage = lazy(() =>
@@ -46,11 +48,22 @@ export function AppRouter() {
             }
           />
 
+          <Route
+            path="registro"
+            element={
+              <div className="flex min-h-screen items-center bg-slate-950 px-4 py-10 text-slate-100">
+                <RegistroPage />
+              </div>
+            }
+          />
+
           <Route element={<RutaProtegida />}>
             <Route element={<MainLayout />}>
               <Route index element={<HomePage />} />
               <Route path="catalogo" element={<CatalogPage />} />
-              <Route path="usuarios" element={<UsersPage />} />
+              <Route element={<RutaSoloAdministrador />}>
+                <Route path="usuarios" element={<UsersPage />} />
+              </Route>
               <Route path="pedidos" element={<OrdersPage />} />
               <Route path="pedidos/:pedidoId" element={<OrderDetailPage />} />
               <Route path="plataforma" element={<PlatformHealthPage />} />
