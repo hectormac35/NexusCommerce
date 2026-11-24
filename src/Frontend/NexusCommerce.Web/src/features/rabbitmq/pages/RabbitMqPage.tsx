@@ -318,7 +318,7 @@ export function RabbitMqPage() {
       </section>
 
       <Card className="p-5">
-        <p className="text-sm text-slate-500">Cluster</p>
+        <p className="text-sm text-slate-500">Clúster</p>
         <p className="mt-2 break-all font-mono text-sm text-slate-300">
           {rabbitMq?.clusterName || 'Desconocido'}
         </p>

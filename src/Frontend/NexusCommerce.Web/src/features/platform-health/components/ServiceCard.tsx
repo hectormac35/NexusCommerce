@@ -45,7 +45,7 @@ export function ServiceCard({
     Gateway: {
       icon: Globe,
       title: 'Gateway',
-      description: 'API Gateway y Reverse Proxy',
+      description: 'Puerta de entrada y proxy inverso',
     },
     Identity: {
       icon: UserRound,
@@ -65,7 +65,7 @@ export function ServiceCard({
     Jaeger: {
       icon: Activity,
       title: 'Jaeger',
-      description: 'Distributed Tracing',
+      description: 'Trazabilidad distribuida',
     },
     PostgreSQL: {
       icon: Database,
