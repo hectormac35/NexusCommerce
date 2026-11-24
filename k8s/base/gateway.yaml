@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: gateway
-          image: nexuscommerce-gateway:jaeger-monitoring-v1
+          image: nexuscommerce-gateway:k8s
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080

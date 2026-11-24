@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Identity.Api.Inicializacion;
 using Identity.Api.ManejoErrores;
 using Identity.Application;
 using Identity.Infrastructure;
@@ -73,6 +74,11 @@ using (var alcance = app.Services.CreateScope())
         .GetRequiredService<IdentidadDbContext>();
 
     await contexto.Database.MigrateAsync();
+
+    await AdministradorInicial.CrearSiNoExisteAsync(
+        alcance.ServiceProvider,
+        app.Configuration,
+        app.Logger);
 }
 
 app.MapGet("/", () => Results.Ok(new

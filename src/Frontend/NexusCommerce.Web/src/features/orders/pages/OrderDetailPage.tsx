@@ -10,6 +10,7 @@ import {
 import { Link, useParams } from 'react-router-dom'
 import { useOrder } from '../hooks/useOrder'
 import { useChangeOrderStatus } from '../hooks/useChangeOrderStatus'
+import { useAuthStore } from '../../auth/store/authStore'
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat('es-ES', {
@@ -65,6 +66,9 @@ function getStatusStyles(status: string) {
 export function OrderDetailPage() {
   const { pedidoId } = useParams()
   const changeStatus = useChangeOrderStatus()
+  // Orders.Api solo permite cambiar el estado a administradores.
+  const esAdministrador =
+    useAuthStore((estado) => estado.usuario?.rol) === 'Administrador'
   const {
     data: order,
     isLoading,
@@ -169,7 +173,7 @@ export function OrderDetailPage() {
           </span>
 
           <div className="flex flex-wrap gap-2">
-            {order.estado === 'Pendiente' && (
+            {esAdministrador && order.estado === 'Pendiente' && (
               <>
                 <button
                   type="button"
@@ -201,7 +205,7 @@ export function OrderDetailPage() {
               </>
             )}
 
-            {order.estado === 'Confirmado' && (
+            {esAdministrador && order.estado === 'Confirmado' && (
               <>
                 <button
                   type="button"
@@ -233,7 +237,7 @@ export function OrderDetailPage() {
               </>
             )}
 
-            {order.estado === 'EnPreparacion' && (
+            {esAdministrador && order.estado === 'EnPreparacion' && (
               <>
                 <button
                   type="button"
@@ -265,7 +269,7 @@ export function OrderDetailPage() {
               </>
             )}
 
-            {order.estado === 'Enviado' && (
+            {esAdministrador && order.estado === 'Enviado' && (
               <button
                 type="button"
                 disabled={changeStatus.isPending}

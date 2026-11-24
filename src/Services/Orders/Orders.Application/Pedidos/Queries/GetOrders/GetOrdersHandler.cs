@@ -20,8 +20,12 @@ public sealed class GetOrdersHandler
         GetOrdersQuery request,
         CancellationToken cancellationToken)
     {
-        var pedidos = await _pedidoRepository.ObtenerTodosAsync(
-            cancellationToken);
+        var pedidos = request.ClienteId is { } clienteId
+            ? await _pedidoRepository.ObtenerPorClienteAsync(
+                clienteId,
+                cancellationToken)
+            : await _pedidoRepository.ObtenerTodosAsync(
+                cancellationToken);
 
         IReadOnlyList<GetOrdersResponse> response = pedidos
             .Select(pedido => new GetOrdersResponse

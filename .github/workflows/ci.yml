@@ -86,6 +86,39 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  frontend:
+    name: Frontend (lint, tests y build)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: src/Frontend/NexusCommerce.Web
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/Frontend/NexusCommerce.Web/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        env:
+          VITE_API_URL: http://localhost:5080
+        run: npm run build
+
   docker-build:
     name: Validar imágenes Docker
     runs-on: ubuntu-latest

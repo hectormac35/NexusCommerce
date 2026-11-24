@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { AxiosError } from 'axios'
 import { useUpdateProduct } from '../hooks/useUpdateProduct'
 import type { Product } from '../types/product'
@@ -33,24 +33,20 @@ export function EditProductDialog({
   isOpen,
   onClose,
 }: EditProductDialogProps) {
-  const [form, setForm] = useState(initialForm)
+  // El padre pasa key={product.id}: el formulario se inicializa desde el producto al montarse.
+  const [form, setForm] = useState<ProductForm>(() =>
+    product
+      ? {
+          nombre: product.nombre,
+          descripcion: product.descripcion,
+          precio: product.precio.toString(),
+          categoria: product.categoria,
+        }
+      : initialForm,
+  )
   const [validationError, setValidationError] = useState<string | null>(null)
 
   const updateProductMutation = useUpdateProduct()
-
-  useEffect(() => {
-    if (!product) {
-      setForm(initialForm)
-      return
-    }
-
-    setForm({
-      nombre: product.nombre,
-      descripcion: product.descripcion,
-      precio: product.precio.toString(),
-      categoria: product.categoria,
-    })
-  }, [product])
 
   if (!isOpen || !product) {
     return null

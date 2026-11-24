@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { X } from 'lucide-react'
 import type {
   User,
@@ -31,14 +31,10 @@ export function ChangeRoleDialog({
   onClose,
   onConfirm,
 }: ChangeRoleDialogProps) {
+  // El padre pasa key={user.id}: al cambiar de usuario el componente se monta de nuevo
+  // y el estado inicial sale de las props (sin useEffect + setState).
   const [selectedRole, setSelectedRole] =
-    useState<UserRole>('Cliente')
-
-  useEffect(() => {
-    if (user) {
-      setSelectedRole(user.rol)
-    }
-  }, [user])
+    useState<UserRole>(user?.rol ?? 'Cliente')
 
   if (!isOpen || !user) {
     return null

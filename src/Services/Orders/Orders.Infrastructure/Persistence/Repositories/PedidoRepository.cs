@@ -42,4 +42,16 @@ internal sealed class PedidoRepository : IPedidoRepository
             .OrderByDescending(pedido => pedido.FechaCreacionUtc)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyCollection<Pedido>> ObtenerPorClienteAsync(
+        Guid clienteId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Pedidos
+            .AsNoTracking()
+            .Include(pedido => pedido.Lineas)
+            .Where(pedido => pedido.ClienteId == clienteId)
+            .OrderByDescending(pedido => pedido.FechaCreacionUtc)
+            .ToListAsync(cancellationToken);
+    }
 }

@@ -280,6 +280,7 @@ export function CatalogPage() {
 
 
       <EditProductDialog
+        key={editingProduct?.id ?? 'ninguno'}
         product={editingProduct}
         isOpen={editingProduct !== null}
         onClose={() => setEditingProduct(null)}

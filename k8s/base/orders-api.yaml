@@ -26,6 +26,19 @@ spec:
               value: http://+:8080
             - name: ConnectionStrings__OrdersDatabase
               value: Host=postgres-orders;Port=5432;Database=nexus_orders;Username=nexus;Password=nexus_dev_password
+            - name: Jwt__Clave
+              valueFrom:
+                secretKeyRef:
+                  name: nexuscommerce-secrets
+                  key: jwt-clave
+            - name: Jwt__Emisor
+              value: NexusCommerce.Identity
+            - name: Jwt__Audiencia
+              value: NexusCommerce.Clientes
+            - name: Servicios__CatalogoUrl
+              value: http://catalog-api:8080/
+            - name: OpenTelemetry__OtlpEndpoint
+              value: http://jaeger:4317
           readinessProbe:
             httpGet:
               path: /health/ready

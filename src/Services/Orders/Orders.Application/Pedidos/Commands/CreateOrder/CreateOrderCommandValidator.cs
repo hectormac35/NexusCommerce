@@ -5,13 +5,18 @@ namespace Orders.Application.Pedidos.Commands.CreateOrder;
 public sealed class CreateOrderCommandValidator
     : AbstractValidator<CreateOrderCommand>
 {
+    public const int MaximoLineas = 50;
+    public const int MaximoUnidadesPorLinea = 100;
+
     public CreateOrderCommandValidator()
     {
         RuleFor(x => x.ClienteId)
             .NotEmpty();
 
         RuleFor(x => x.Lineas)
-            .NotEmpty();
+            .NotEmpty()
+            .Must(lineas => lineas.Count <= MaximoLineas)
+            .WithMessage($"Un pedido no puede tener más de {MaximoLineas} líneas.");
 
         RuleForEach(x => x.Lineas)
             .ChildRules(linea =>
@@ -19,15 +24,8 @@ public sealed class CreateOrderCommandValidator
                 linea.RuleFor(x => x.ProductoId)
                     .NotEmpty();
 
-                linea.RuleFor(x => x.NombreProducto)
-                    .NotEmpty()
-                    .MaximumLength(200);
-
-                linea.RuleFor(x => x.PrecioUnitario)
-                    .GreaterThan(0);
-
                 linea.RuleFor(x => x.Cantidad)
-                    .GreaterThan(0);
+                    .InclusiveBetween(1, MaximoUnidadesPorLinea);
             });
     }
 }

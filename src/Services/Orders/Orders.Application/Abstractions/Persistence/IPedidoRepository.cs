@@ -14,4 +14,8 @@ public interface IPedidoRepository
 
     Task<IReadOnlyCollection<Pedido>> ObtenerTodosAsync(
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyCollection<Pedido>> ObtenerPorClienteAsync(
+        Guid clienteId,
+        CancellationToken cancellationToken = default);
 }

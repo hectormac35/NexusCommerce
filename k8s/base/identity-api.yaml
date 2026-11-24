@@ -31,6 +31,13 @@ spec:
             secretKeyRef:
               name: nexuscommerce-secrets
               key: jwt-clave
+        - name: AdministradorInicial__Correo
+          value: admin@nexuscommerce.local
+        - name: AdministradorInicial__Contrasena
+          valueFrom:
+            secretKeyRef:
+              name: nexuscommerce-secrets
+              key: admin-contrasena
         readinessProbe:
           httpGet:
             path: /health/ready

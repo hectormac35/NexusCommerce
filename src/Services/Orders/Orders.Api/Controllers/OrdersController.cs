@@ -1,17 +1,22 @@
+using System.Security.Claims;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Orders.Application.Pedidos.Commands.CreateOrder;
 using Orders.Application.Pedidos.Commands.ChangeOrderStatus;
+using Orders.Application.Pedidos.Commands.CreateOrder;
 using Orders.Application.Pedidos.Queries.GetOrderById;
 using Orders.Application.Pedidos.Queries.GetOrders;
 
 namespace Orders.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/pedidos")]
 public sealed class OrdersController : ControllerBase
 {
+    private const string RolAdministrador = "Administrador";
+
     private readonly ISender _sender;
     private readonly IValidator<CreateOrderCommand> _validator;
 
@@ -23,6 +28,7 @@ public sealed class OrdersController : ControllerBase
         _validator = validator;
     }
 
+    /// <summary>Crea un pedido para el usuario autenticado.</summary>
     [HttpPost]
     [ProducesResponseType(
         typeof(CreateOrderResponse),
@@ -30,27 +36,29 @@ public sealed class OrdersController : ControllerBase
     [ProducesResponseType(
         typeof(ValidationProblemDetails),
         StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create(
-        [FromBody] CreateOrderCommand command,
+        [FromBody] CreateOrderRequest request,
         CancellationToken cancellationToken)
     {
+        if (ObtenerUsuarioId() is not { } clienteId)
+        {
+            return Unauthorized();
+        }
+
+        // El cliente del pedido es siempre quien hace la petición.
+        var command = new CreateOrderCommand(
+            clienteId,
+            request.Lineas ?? []);
+
         var validationResult = await _validator.ValidateAsync(
             command,
             cancellationToken);
 
         if (!validationResult.IsValid)
         {
-            Dictionary<string, string[]> errors = validationResult.Errors
-                .GroupBy(error => error.PropertyName)
-                .ToDictionary(
-                    group => group.Key,
-                    group => group
-                        .Select(error => error.ErrorMessage)
-                        .Distinct()
-                        .ToArray());
-
             return BadRequest(
-                new ValidationProblemDetails(errors));
+                new ValidationProblemDetails(AgruparErrores(validationResult)));
         }
 
         var result = await _sender.Send(
@@ -72,7 +80,7 @@ public sealed class OrdersController : ControllerBase
             response);
     }
 
-
+    /// <summary>Administradores: todos los pedidos. Resto: solo los suyos.</summary>
     [HttpGet]
     [ProducesResponseType(
         typeof(IReadOnlyList<GetOrdersResponse>),
@@ -80,19 +88,29 @@ public sealed class OrdersController : ControllerBase
     public async Task<IActionResult> GetAll(
         CancellationToken cancellationToken)
     {
+        if (ObtenerUsuarioId() is not { } usuarioId)
+        {
+            return Unauthorized();
+        }
+
+        Guid? filtroCliente = User.IsInRole(RolAdministrador)
+            ? null
+            : usuarioId;
+
         var result = await _sender.Send(
-            new GetOrdersQuery(),
+            new GetOrdersQuery(filtroCliente),
             cancellationToken);
 
         return Ok(result.Value);
     }
 
-
     [HttpPatch("{pedidoId:guid}/estado")]
+    [Authorize(Roles = RolAdministrador)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(
         typeof(ValidationProblemDetails),
         StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ChangeStatus(
         Guid pedidoId,
@@ -110,17 +128,8 @@ public sealed class OrdersController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            Dictionary<string, string[]> errors = validationResult.Errors
-                .GroupBy(error => error.PropertyName)
-                .ToDictionary(
-                    group => group.Key,
-                    group => group
-                        .Select(error => error.ErrorMessage)
-                        .Distinct()
-                        .ToArray());
-
             return BadRequest(
-                new ValidationProblemDetails(errors));
+                new ValidationProblemDetails(AgruparErrores(validationResult)));
         }
 
         var result = await _sender.Send(
@@ -157,23 +166,55 @@ public sealed class OrdersController : ControllerBase
         Guid pedidoId,
         CancellationToken cancellationToken)
     {
+        if (ObtenerUsuarioId() is not { } usuarioId)
+        {
+            return Unauthorized();
+        }
+
         var result = await _sender.Send(
             new GetOrderByIdQuery(pedidoId),
             cancellationToken);
 
-        if (result.Failure)
+        // Un pedido de otra persona se trata igual que uno inexistente (no se revela que existe).
+        if (result.Failure
+            || (result.Value!.ClienteId != usuarioId && !User.IsInRole(RolAdministrador)))
         {
             return NotFound(
                 new
                 {
-                    error = result.Error
+                    error = "Pedido no encontrado."
                 });
         }
 
         return Ok(result.Value);
     }
+
+    private Guid? ObtenerUsuarioId()
+    {
+        string? valor = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? User.FindFirstValue("sub");
+
+        return Guid.TryParse(valor, out Guid usuarioId)
+            ? usuarioId
+            : null;
+    }
+
+    private static Dictionary<string, string[]> AgruparErrores(
+        FluentValidation.Results.ValidationResult validationResult)
+    {
+        return validationResult.Errors
+            .GroupBy(error => error.PropertyName)
+            .ToDictionary(
+                group => group.Key,
+                group => group
+                    .Select(error => error.ErrorMessage)
+                    .Distinct()
+                    .ToArray());
+    }
 }
 
+public sealed record CreateOrderRequest(
+    IReadOnlyCollection<CreateOrderItemRequest>? Lineas);
 
 public sealed record ChangeOrderStatusRequest(
     string NuevoEstado);

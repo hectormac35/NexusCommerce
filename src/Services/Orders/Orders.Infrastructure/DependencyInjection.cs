@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Orders.Application.Abstractions.Catalogo;
 using Orders.Application.Abstractions.Persistence;
+using Orders.Infrastructure.Catalogo;
 using Orders.Infrastructure.Persistence;
 using Orders.Infrastructure.Persistence.Repositories;
 
@@ -26,6 +28,17 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork>(
             serviceProvider =>
                 serviceProvider.GetRequiredService<OrdersDbContext>());
+
+        string catalogoUrl =
+            configuration["Servicios:CatalogoUrl"]
+            ?? throw new InvalidOperationException(
+                "No se ha configurado 'Servicios:CatalogoUrl'.");
+
+        services.AddHttpClient<ICatalogoProductos, CatalogoHttpCliente>(cliente =>
+        {
+            cliente.BaseAddress = new Uri(catalogoUrl);
+            cliente.Timeout = TimeSpan.FromSeconds(5);
+        });
 
         return services;
     }

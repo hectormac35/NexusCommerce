@@ -250,6 +250,7 @@ export function UsersPage() {
       </div>
 
       <ChangeRoleDialog
+        key={selectedUser?.id ?? 'ninguno'}
         user={selectedUser}
         isOpen={selectedUser !== null}
         isPending={changeUserRoleMutation.isPending}

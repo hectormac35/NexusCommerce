@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useLogin } from '../hooks/useLogin'
 import {
   loginSchema,
@@ -15,7 +15,10 @@ type ApiProblem = {
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const loginMutation = useLogin()
+  const destino =
+    (location.state as { desde?: string } | null)?.desde ?? '/'
 
   const {
     register,
@@ -31,7 +34,7 @@ export function LoginPage() {
 
   async function onSubmit(values: LoginFormValues) {
     await loginMutation.mutateAsync(values)
-    navigate('/')
+    navigate(destino, { replace: true })
   }
 
   const apiError =
@@ -40,7 +43,7 @@ export function LoginPage() {
       : undefined
 
   return (
-    <section className="mx-auto max-w-md">
+    <section className="mx-auto w-full max-w-md">
       <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-2xl">
         <p className="text-sm font-semibold uppercase tracking-wider text-blue-400">
           Área privada

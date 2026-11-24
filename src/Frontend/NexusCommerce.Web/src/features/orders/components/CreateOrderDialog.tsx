@@ -74,11 +74,8 @@ export function CreateOrderDialog({
     }
 
     const result = await createOrder.mutateAsync({
-      clienteId: usuario.id,
       lineas: selectedProducts.map((product) => ({
         productoId: product.id,
-        nombreProducto: product.nombre,
-        precioUnitario: product.precio,
         cantidad: quantities[product.id],
       })),
     })

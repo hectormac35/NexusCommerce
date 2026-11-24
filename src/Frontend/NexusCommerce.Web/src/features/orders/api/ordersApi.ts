@@ -1,15 +1,14 @@
 import { apiClient } from '../../../shared/api/apiClient'
 import type { Order, OrderDetail } from '../types/order'
 
+// El cliente solo envía qué producto y cuántas unidades.
+// El usuario sale del token y el nombre/precio los pone Orders.Api desde el catálogo.
 export type CreateOrderLineRequest = {
   productoId: string
-  nombreProducto: string
-  precioUnitario: number
   cantidad: number
 }
 
 export type CreateOrderRequest = {
-  clienteId: string
   lineas: CreateOrderLineRequest[]
 }
 

@@ -1,6 +1,7 @@
 using Orders.Application.Abstractions.Messaging;
 using Orders.Application.Abstractions.Persistence;
 using Orders.Application.Common.Results;
+using Orders.Domain.Excepciones;
 using Orders.Domain.Pedidos;
 
 namespace Orders.Application.Pedidos.Commands.ChangeOrderStatus;
@@ -32,30 +33,38 @@ public sealed class ChangeOrderStatusHandler
             return Result.Fail("Pedido no encontrado.");
         }
 
-        switch (request.NuevoEstado.Trim().ToLowerInvariant())
+        try
         {
-            case "confirmado":
-                pedido.Confirmar();
-                break;
+            switch (request.NuevoEstado.Trim().ToLowerInvariant())
+            {
+                case "confirmado":
+                    pedido.Confirmar();
+                    break;
 
-            case "enpreparacion":
-                pedido.IniciarPreparacion();
-                break;
+                case "enpreparacion":
+                    pedido.IniciarPreparacion();
+                    break;
 
-            case "enviado":
-                pedido.MarcarComoEnviado();
-                break;
+                case "enviado":
+                    pedido.MarcarComoEnviado();
+                    break;
 
-            case "entregado":
-                pedido.MarcarComoEntregado();
-                break;
+                case "entregado":
+                    pedido.MarcarComoEntregado();
+                    break;
 
-            case "cancelado":
-                pedido.Cancelar();
-                break;
+                case "cancelado":
+                    pedido.Cancelar();
+                    break;
 
-            default:
-                return Result.Fail("Estado no válido.");
+                default:
+                    return Result.Fail("Estado no válido.");
+            }
+        }
+        catch (ExcepcionDominio excepcion)
+        {
+            // Transición no permitida (p. ej. enviar un pedido cancelado): 400, no 500.
+            return Result.Fail(excepcion.Message);
         }
 
         await _unitOfWork.GuardarCambiosAsync(

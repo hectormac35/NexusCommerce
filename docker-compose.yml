@@ -46,7 +46,6 @@ services:
       timeout: 5s
       retries: 10
 
-
   postgres-orders:
     image: postgres:18-alpine
     container_name: nexuscommerce-postgres-orders
@@ -121,6 +120,55 @@ services:
       timeout: 5s
       retries: 10
 
+  identity-api:
+    build:
+      context: .
+      dockerfile: src/Services/Identity/Identity.Api/Dockerfile
+    container_name: nexuscommerce-identity-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Identidad: Host=postgres-identidad;Port=5432;Database=nexus_identidad;Username=nexus;Password=nexus_dev_password
+      Jwt__Clave: NexusCommerce-Development-Key-2026-Muy-Segura-Para-JWT
+      Jwt__Emisor: NexusCommerce.Identity
+      Jwt__Audiencia: NexusCommerce.Clientes
+      # Solo para la demo local: administrador creado al primer arranque.
+      AdministradorInicial__Correo: admin@nexuscommerce.local
+      AdministradorInicial__Contrasena: Admin.Nexus2026!
+    ports:
+      - "5201:8080"
+    depends_on:
+      postgres-identidad:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl --fail --silent http://localhost:8080/health/ready > /dev/null || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  notification-worker:
+    build:
+      context: .
+      dockerfile: src/Services/Notification/Notification.Worker/Dockerfile
+    container_name: nexuscommerce-notification-worker
+    restart: unless-stopped
+    environment:
+      DOTNET_ENVIRONMENT: Development
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Puerto: 5672
+      RabbitMq__Usuario: nexus
+      RabbitMq__Contrasena: nexus_rabbit_password
+      RabbitMq__VirtualHost: /
+      RabbitMq__Exchange: nexuscommerce.eventos
+      OpenTelemetry__OtlpEndpoint: http://jaeger:4317
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
   orders-api:
     build:
@@ -132,10 +180,17 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__OrdersDatabase: Host=postgres-orders;Port=5432;Database=nexus_orders;Username=nexus;Password=nexus_dev_password
+      Jwt__Clave: NexusCommerce-Development-Key-2026-Muy-Segura-Para-JWT
+      Jwt__Emisor: NexusCommerce.Identity
+      Jwt__Audiencia: NexusCommerce.Clientes
+      Servicios__CatalogoUrl: http://catalog-api:8080/
+      OpenTelemetry__OtlpEndpoint: http://jaeger:4317
     ports:
       - "5301:8080"
     depends_on:
       postgres-orders:
+        condition: service_healthy
+      catalog-api:
         condition: service_healthy
     healthcheck:
       test:
@@ -158,10 +213,17 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ReverseProxy__Clusters__cluster-catalogo__Destinations__catalogo-api__Address: http://catalog-api:8080/
       ReverseProxy__Clusters__cluster-pedidos__Destinations__pedidos-api__Address: http://orders-api:8080/
+      ReverseProxy__Clusters__cluster-identidad__Destinations__identidad-api__Address: http://identity-api:8080/
       OpenTelemetry__OtlpEndpoint: http://jaeger:4317
+      Jaeger__QueryUrl: http://jaeger:16686
+      RabbitMq__ManagementUrl: http://rabbitmq:15672
+      RabbitMq__Usuario: nexus
+      RabbitMq__Contrasena: nexus_rabbit_password
     ports:
-      - "5000:8080"
+      - "5080:8080"           # el frontend usa VITE_API_URL=http://localhost:5080
     depends_on:
+      identity-api:
+        condition: service_healthy
       catalog-api:
         condition: service_healthy
       orders-api:
