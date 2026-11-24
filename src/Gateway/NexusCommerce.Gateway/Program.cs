@@ -27,12 +27,19 @@ builder.Services.AddScoped<
     IJaegerMonitoringService,
     JaegerMonitoringService>();
 
+// Orígenes del panel: se pueden ampliar con Cors__OrigenesPermitidos__0, __1…
+string[] origenesPermitidos =
+    builder.Configuration
+        .GetSection("Cors:OrigenesPermitidos")
+        .Get<string[]>()
+    ?? ["http://localhost:5173", "http://localhost:5174", "http://localhost:4173"];
+
 builder.Services.AddCors(opciones =>
 {
     opciones.AddPolicy("Frontend", politica =>
     {
         politica
-            .WithOrigins("http://localhost:5173")
+            .WithOrigins(origenesPermitidos)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });

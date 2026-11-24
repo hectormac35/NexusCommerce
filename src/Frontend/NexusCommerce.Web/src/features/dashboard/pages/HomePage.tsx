@@ -19,6 +19,7 @@ import { QuickActions } from '../../../shared/components/dashboard/QuickActions'
 import { RecentActivity } from '../../../shared/components/dashboard/RecentActivity'
 import { InventoryChart } from '../../../shared/components/dashboard/InventoryChart'
 import { usePlatformHealth } from '../../platform-health/hooks/usePlatformHealth'
+import { useOrders } from '../../orders/hooks/useOrders'
 
 
 export function HomePage() {
@@ -29,6 +30,8 @@ export function HomePage() {
     isError: isHealthError,
   } = usePlatformHealth()
   const usuario = useAuthStore((state) => state.usuario)
+  const { data: orders = [] } = useOrders()
+  const pendingOrders = orders.filter((order) => order.estado === 'Pendiente').length
 
   const activeProducts = products.filter((product) => product.estaActivo).length
   const totalStock = products.reduce((total, product) => total + product.stock, 0)
@@ -111,8 +114,8 @@ export function HomePage() {
 
         <StatCard
           title="Pedidos"
-          value={0}
-          description="Módulo planificado"
+          value={orders.length}
+          description={`${pendingOrders} pendientes de confirmar`}
           icon={ShoppingCart}
           accent="amber"
         />
