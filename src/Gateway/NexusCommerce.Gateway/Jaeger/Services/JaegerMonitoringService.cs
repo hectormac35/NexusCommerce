@@ -407,10 +407,8 @@ public sealed class JaegerMonitoringService(
 
         public int SpanCount { get; init; }
 
-        public IReadOnlyCollection<string> Services {
-            get;
-            init;
-        } = Array.Empty<string>();
+        public IReadOnlyCollection<string> Services { get; init; } =
+            Array.Empty<string>();
 
         public bool HasError { get; init; }
 
