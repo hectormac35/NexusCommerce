@@ -11,6 +11,7 @@ import {
 
 import { Card } from '../../../shared/ui/card/Card'
 import { useJaegerOverview } from '../hooks/useJaegerOverview'
+import { textoEstado } from '../../../shared/api/textosEstado'
 
 function formatDuration(durationMs: number) {
   if (durationMs < 1) {
@@ -131,7 +132,7 @@ export function JaegerPage() {
             <div>
               <p className="text-sm text-slate-500">Estado</p>
               <p className="mt-2 text-2xl font-bold text-white">
-                {jaeger?.status ?? 'Desconocido'}
+                {textoEstado(jaeger?.status)}
               </p>
             </div>
 
@@ -288,7 +289,7 @@ export function JaegerPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-slate-800 bg-slate-900/60 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
-                  <th translate="no" className="notranslate px-5 py-4">Trace ID</th>
+                  <th translate="no" className="notranslate px-5 py-4">ID de traza</th>
                   <th className="px-5 py-4">Operación</th>
                   <th className="px-5 py-4">Servicios</th>
                   <th translate="no" className="notranslate px-5 py-4">Spans</th>

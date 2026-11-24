@@ -20,6 +20,8 @@ import { RecentActivity } from '../../../shared/components/dashboard/RecentActiv
 import { InventoryChart } from '../../../shared/components/dashboard/InventoryChart'
 import { usePlatformHealth } from '../../platform-health/hooks/usePlatformHealth'
 import { useOrders } from '../../orders/hooks/useOrders'
+import { useUsers } from '../../users/hooks/useUsers'
+import { textoEstado } from '../../../shared/api/textosEstado'
 
 
 export function HomePage() {
@@ -31,6 +33,8 @@ export function HomePage() {
   } = usePlatformHealth()
   const usuario = useAuthStore((state) => state.usuario)
   const { data: orders = [] } = useOrders()
+  const esAdministrador = usuario?.rol === 'Administrador'
+  const { data: users = [] } = useUsers(esAdministrador)
   const pendingOrders = orders.filter((order) => order.estado === 'Pendiente').length
 
   const activeProducts = products.filter((product) => product.estaActivo).length
@@ -64,7 +68,7 @@ export function HomePage() {
           </div>
 
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Dashboard
+            Panel
           </h1>
 
           <p className="mt-2 max-w-2xl text-slate-400">
@@ -106,8 +110,8 @@ export function HomePage() {
 
         <StatCard
           title="Usuarios"
-          value={usuario ? 1 : 0}
-          description="Sesión autenticada actualmente"
+          value={esAdministrador ? users.length : 1}
+          description={esAdministrador ? 'Cuentas registradas' : 'Tu cuenta'}
           icon={Users}
           accent="violet"
         />
@@ -307,7 +311,7 @@ export function HomePage() {
 
                       <div className="shrink-0 text-right">
                         <Badge variant={isHealthy ? 'success' : 'danger'}>
-                          {service.status}
+                          {textoEstado(service.status)}
                         </Badge>
 
                         <p className="mt-1.5 text-xs text-slate-600">
@@ -325,7 +329,7 @@ export function HomePage() {
               to="/plataforma"
               className="flex items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-blue-500/40 hover:bg-slate-800 hover:text-white"
             >
-              Ver Platform Health completo
+              Ver la salud de la plataforma
               <ArrowRight size={16} />
             </Link>
           </div>

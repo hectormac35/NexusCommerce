@@ -9,6 +9,7 @@ import {
 import { Card } from '../../../shared/ui/card/Card'
 import { ServiceCard } from '../components/ServiceCard'
 import { usePlatformHealth } from '../hooks/usePlatformHealth'
+import { textoEstado } from '../../../shared/api/textosEstado'
 
 const serviceDescriptions: Record<string, string> = {
   Gateway: 'Punto de entrada y enrutamiento mediante YARP',
@@ -94,7 +95,7 @@ export function PlatformHealthPage() {
           </div>
 
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Platform Health
+            Salud de la plataforma
           </h1>
 
           <p className="mt-2 max-w-2xl text-slate-400">
@@ -124,7 +125,7 @@ export function PlatformHealthPage() {
             <div>
               <p className="text-sm text-slate-500">Estado general</p>
               <p className="mt-2 text-2xl font-bold text-white">
-                {platformHealth?.status ?? 'Desconocido'}
+                {textoEstado(platformHealth?.status)}
               </p>
             </div>
 

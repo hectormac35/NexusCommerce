@@ -11,6 +11,7 @@ import { Badge } from '../../../shared/ui/badge/Badge'
 import { Card } from '../../../shared/ui/card/Card'
 
 import type { ServiceHealth } from '../types/platformHealth'
+import { textoEstado } from '../../../shared/api/textosEstado'
 
 type Props = {
   service: ServiceHealth
@@ -112,7 +113,7 @@ export function ServiceCard({
         <Badge
           variant={healthy ? 'success' : 'danger'}
         >
-          {service.status}
+          {textoEstado(service.status)}
         </Badge>
       </div>
 

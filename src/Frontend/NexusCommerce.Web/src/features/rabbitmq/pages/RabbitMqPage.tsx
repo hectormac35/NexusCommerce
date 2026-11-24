@@ -13,6 +13,7 @@ import {
 
 import { Card } from '../../../shared/ui/card/Card'
 import { useRabbitMqOverview } from '../hooks/useRabbitMqOverview'
+import { textoEstado } from '../../../shared/api/textosEstado'
 
 export function RabbitMqPage() {
   const {
@@ -112,7 +113,7 @@ export function RabbitMqPage() {
             <div>
               <p className="text-sm text-slate-500">Estado</p>
               <p className="mt-2 text-2xl font-bold text-white">
-                {rabbitMq?.status ?? 'Desconocido'}
+                {textoEstado(rabbitMq?.status)}
               </p>
             </div>
 
@@ -279,7 +280,7 @@ export function RabbitMqPage() {
 
                     <td className="px-5 py-4">
                       <span className="inline-flex rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300">
-                        {queue.state}
+                        {textoEstado(queue.state)}
                       </span>
                     </td>
 
