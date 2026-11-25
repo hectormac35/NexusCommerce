@@ -16,6 +16,9 @@ metadata:
   name: postgres-catalogo
   namespace: nexuscommerce
 spec:
+  # Una base de datos no puede tener dos pods usando el mismo volumen a la vez.
+  strategy:
+    type: Recreate
   replicas: 1
   selector:
     matchLabels:

@@ -28,8 +28,15 @@ done
 echo "▶ Aplicando los manifiestos"
 kubectl apply -k k8s/base
 
-# Reinicia los despliegues para que usen las imágenes recién cargadas.
-kubectl -n nexuscommerce rollout restart deployment
+# Espera a la infraestructura antes de (re)arrancar los servicios que dependen de ella.
+kubectl -n nexuscommerce wait --for=condition=available --timeout=300s \
+  deployment/postgres-identidad deployment/postgres-catalogo deployment/postgres-orders deployment/rabbitmq
+
+# Solo se reinician los servicios propios, para que usen las imágenes recién cargadas
+# (reiniciar PostgreSQL mientras se inicializa puede dejar la base de datos vacía).
+kubectl -n nexuscommerce rollout restart \
+  deployment/identity-api deployment/catalog-api deployment/orders-api \
+  deployment/notification-worker deployment/gateway
 kubectl -n nexuscommerce wait --for=condition=available deployment --all --timeout=300s
 
 echo "✔ Listo. Gateway: http://localhost:5080 · Jaeger: http://localhost:16686"
