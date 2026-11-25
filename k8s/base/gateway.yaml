@@ -28,6 +28,8 @@ spec:
               value: http://catalog-api:8080/
             - name: ReverseProxy__Clusters__cluster-pedidos__Destinations__pedidos-api__Address
               value: http://orders-api:8080/
+            - name: ReverseProxy__Clusters__cluster-identidad__Destinations__identidad-api__Address
+              value: http://identity-api:8080/
             - name: OpenTelemetry__OtlpEndpoint
               value: http://jaeger:4317
             - name: Jaeger__QueryUrl
