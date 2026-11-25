@@ -47,7 +47,25 @@ Cada microservicio sigue **Clean Architecture** (Domain → Application → Infr
 
 ## Panel de administración
 
-> Capturas del panel funcionando con `docker compose` (se añaden en `docs/images/`).
+Capturas reales del panel con la plataforma levantada con `docker compose`.
+
+<p align="center"><img src="docs/images/panel/panel.png" alt="Inicio del panel: productos, stock, usuarios, pedidos y estado de los servicios" width="100%"></p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/images/panel/catalogo.png" alt="Catálogo de productos"><br><sub><b>Catálogo</b>: alta, edición y baja solo para administradores</sub></td>
+    <td width="50%"><img src="docs/images/panel/pedidos.png" alt="Listado de pedidos con estados"><br><sub><b>Pedidos</b>: importes calculados en el servidor y ciclo de estados</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/panel/usuarios.png" alt="Gestión de usuarios y roles"><br><sub><b>Usuarios</b>: el administrador asigna Cliente, Empleado o Administrador</sub></td>
+    <td><img src="docs/images/panel/plataforma.png" alt="Salud de la plataforma"><br><sub><b>Salud de la plataforma</b>: estado y latencia de cada servicio desde el gateway</sub></td>
+  </tr>
+</table>
+
+<details>
+<summary><b>Registro de cuentas</b></summary>
+<p align="center"><img src="docs/images/panel/registro.png" alt="Pantalla de registro" width="360"></p>
+</details>
 
 ---
 
