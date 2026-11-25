@@ -8,8 +8,10 @@ internal sealed class CatalogoApiFactory(
     string cadenaConexion)
     : WebApplicationFactory<Program>
 {
+    // Debe coincidir con Jwt:Clave de Catalog.Api/appsettings.json: Program.cs lee la
+    // clave al construir la aplicación, antes de que se apliquen estos valores en memoria.
     public const string JwtClave =
-        "NexusCommerce-Development-Key-2026-Super-Segura-Minimo-32";
+        "NexusCommerce-Development-Key-2026-Muy-Segura-Para-JWT";
 
     public const string JwtEmisor =
         "NexusCommerce.Identity";
